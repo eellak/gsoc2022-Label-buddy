@@ -210,11 +210,11 @@ function fixNumberOfRegions() {
 }
 //----------------------------------------------------------------------------------------------
 
-
 document.addEventListener('DOMContentLoaded', function() {
     // Init wavesurfer
     wavesurfer = WaveSurfer.create({
         container: '#waveform',
+        backend: "MediaElement",
         height: 250,
         pixelRatio: 1,
         scrollParent: true,
@@ -222,7 +222,6 @@ document.addEventListener('DOMContentLoaded', function() {
         splitChannels: false,
         waveColor: '#ddd',
         progressColor: '#ddd',
-        backend: 'MediaElement',
         plugins: [
             WaveSurfer.regions.create(),
             WaveSurfer.timeline.create({
@@ -240,7 +239,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }),
         ]
     });
-    wavesurfer.load(audio_url);
+    wavesurfer.load(audio_url, JSON.parse(audio_waveform_data), 'none');
 
     /* Regions */
 
@@ -411,6 +410,7 @@ function loadRegions(result) {
         wavesurfer.addRegion({
             start: region['value']['start'],
             end: region['value']['end'],
+            loop: false,
             color: rgbToRgba(getLabelColorByValue(region['value']['label']), initial_opacity),
             data: {
                 label: region['value']['label'],

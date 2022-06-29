@@ -133,8 +133,7 @@
                         </td>
                         <td>
                             {% if task.file %}
-                                <audio title="{{ task.file }}" class="audio-player" controls
-                                    src="{{ task.file.url }}">
+                                <audio title="{{ task.file }}" preload="none" class="audio-player" controls src="{{ task.file.url }}">
                                         Your browser does not support the
                                         <code>audio</code> element.
                                 </audio>

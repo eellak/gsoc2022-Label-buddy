@@ -69,7 +69,7 @@ class Task(models.Model):
     original_file_name = models.CharField(max_length=256, blank=True, null=True, default='', help_text='Task file original file name')
     url = URLOrRelativeURLField(blank=True, help_text='URL for a file')
 
-    extra = jsonfield.JSONField(blank=True, null=True, default=None, help_text='Extra info about the task')
+    audiowaveform = jsonfield.JSONField(blank=True, null=True, default=None, help_text='Audiowaveform data to use for the wavesurver')
     status = EnumChoiceField(Status, default=Status.unlabeled, help_text='If the task is annotated status must be labeled else unlabeled')
     review_status = EnumChoiceField(Review_status, default=Review_status.unreviewed, help_text='Status for reviews')
 
