@@ -209,14 +209,14 @@ function fixNumberOfRegions() {
     }
 }
 
-function loop(audio) {
-    var buffered = audio.buffered;
-    var loaded;
-    var played;
+function get_loaded_precentage(audio) {
+    var buffered = audio.buffered; // returns the buffered portion of the audio
+    var loaded; // the loaded portion of the audio
+    var played; // the played portion of the audio
 
     if (buffered.length) {
-    loaded = 100 * buffered.end(0) / audio.duration;
-    played = 100 * audio.currentTime / audio.duration;
+    loaded = 100 * buffered.end(0) / audio.duration;  // calculate the loaded percent of the audio
+    played = 100 * audio.currentTime / audio.duration; // calculate the played percent of the audio
     console.log(loaded);
     }
 
@@ -256,8 +256,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     wavesurfer.load(audio_url, JSON.parse(audio_waveform_data), 'auto');
-    // console.log(wavesurfer.backend.media);
-    // loop(wavesurfer.backend.media, 0);
+
     /* Regions */
 
     // load regions of existing annotation (if exists)
@@ -272,8 +271,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // audioprocess as the audio is playing - calculate the loaded percentage each time
     wavesurfer.on('audioprocess', function() {
-        let loaded = loop(wavesurfer.backend.media);
+        let loaded_percent = get_loaded_precentage(wavesurfer.backend.media);
         console.log(loaded);
     });
 
