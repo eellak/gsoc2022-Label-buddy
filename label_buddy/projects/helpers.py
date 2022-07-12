@@ -592,16 +592,19 @@ def get_audiowaveform_data(audio_file):
     Return audio waveform data for the task.
     """
 
-    json_name = audio_file.split(".")[0]
-    json_name = "media/data/" + json_name.split("audio/")[1]
+    json_name_without_extension = audio_file.split(".")[0]
+    json_name = "media/data/" + json_name_without_extension.split("audio/")[1]
 
     os.system(f'audiowaveform -i {audio_file[1:]} -o {json_name}.json --pixels-per-second 20 --bits 8')
 
     with open(json_name + ".json", "r") as f:
-        data = json.load(f)
-
-    return data["data"]
+        json_data = json.load(f)
     
+    f.close()
+    os.remove(json_name + ".json")
+
+    return json_data["data"]
+
 
 
 @register.filter

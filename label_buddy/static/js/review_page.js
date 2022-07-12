@@ -189,8 +189,8 @@ function add_region_to_section(region) {
     let new_region_button = getRegionButton(region);
     $('#regions-div').append(new_region_button);
 }
-//----------------------------------------------------------------------------------------------
 
+//----------------------------------------------------------------------------------------------
 
 document.addEventListener('DOMContentLoaded', function() {
     // Init wavesurfer
@@ -221,7 +221,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }),
         ]
     });
-    wavesurfer.load(audio_url, JSON.parse(audio_waveform_data), 'none');
+
+    wavesurfer.load(audio_url, JSON.parse(audio_waveform_data), 'auto');
+
     /* Regions */
 
     // load regions of existing annotation (if exists)

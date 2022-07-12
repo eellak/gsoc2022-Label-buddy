@@ -208,13 +208,28 @@ function fixNumberOfRegions() {
         $(btn).find('#count').text(counter++ + ".")
     }
 }
+
+function loop(audio) {
+    var buffered = audio.buffered;
+    var loaded;
+    var played;
+
+    if (buffered.length) {
+    loaded = 100 * buffered.end(0) / audio.duration;
+    played = 100 * audio.currentTime / audio.duration;
+    console.log(loaded);
+    }
+
+    return loaded;
+}
+
 //----------------------------------------------------------------------------------------------
 
 document.addEventListener('DOMContentLoaded', function() {
     // Init wavesurfer
     wavesurfer = WaveSurfer.create({
         container: '#waveform',
-        backend: "MediaElement",
+        backend: 'MediaElement',
         height: 250,
         pixelRatio: 1,
         scrollParent: true,
@@ -223,7 +238,7 @@ document.addEventListener('DOMContentLoaded', function() {
         waveColor: '#ddd',
         progressColor: '#ddd',
         plugins: [
-            WaveSurfer.regions.create(),
+            WaveSurfer.regions.create({}),
             WaveSurfer.timeline.create({
                 container: '#wave-timeline'
             }),
@@ -239,8 +254,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }),
         ]
     });
-    wavesurfer.load(audio_url, JSON.parse(audio_waveform_data), 'none');
 
+    wavesurfer.load(audio_url, JSON.parse(audio_waveform_data), 'auto');
+    // console.log(wavesurfer.backend.media);
+    // loop(wavesurfer.backend.media, 0);
     /* Regions */
 
     // load regions of existing annotation (if exists)
@@ -253,6 +270,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if(result && result.length != 0) {
             loadRegions(result);
         }
+    });
+
+    wavesurfer.on('audioprocess', function() {
+        let loaded = loop(wavesurfer.backend.media);
+        console.log(loaded);
     });
 
 
