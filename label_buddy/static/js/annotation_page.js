@@ -217,7 +217,6 @@ function get_loaded_precentage(audio) {
     if (buffered.length) {
     loaded = 100 * buffered.end(0) / audio.duration;  // calculate the loaded percent of the audio
     played = 100 * audio.currentTime / audio.duration; // calculate the played percent of the audio
-    console.log(loaded);
     }
 
     return loaded;
@@ -274,7 +273,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // audioprocess as the audio is playing - calculate the loaded percentage each time
     wavesurfer.on('audioprocess', function() {
         let loaded_percent = get_loaded_precentage(wavesurfer.backend.media);
-        console.log(loaded);
+        if (loaded_percent < 100){
+            NProgress.set(loaded_percent/100); 
+        }
+        if (loaded_percent == 100){
+            NProgress.done();
+        }
     });
 
 
