@@ -26,7 +26,9 @@ Computer Vision Annotation Tool (CVAT): https://github.com/openvinotoolkit/cvat
 
 # Project goals :dart: 
 
-We will try to develop a web application (audio annotation tool) which will provide the multi-user feature and a pleasant UI for users. There will be three distinct types of users in the application: Managers, Annotators and Reviewers.
+This project is an enhancement to the previous work that has been done previously. Its goal is to make annotation simple and easy while also
+maintaining a well-defined manager-annotator-reviewer framework. The goal of this project is to use Transfer Learning (TL) approaches to make the
+annotation process easier for the user by offering label predictions. This way it will be possible to accomplish more with less data and effort. It is manly devided in two categories of tasks: Machine/Transfer Learning and Django.
 
 **Machine/Transfer Learning:**
 
