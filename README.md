@@ -68,9 +68,9 @@ Activate it for **Windows**
 env\Scripts\activate
 ~~~
 
-Install audiowaveform
+Install **audiowaveform**
 ~~~
-Follow the steps described [here](https://github.com/bbc/audiowaveform#installation).
+Follow the steps described in https://github.com/bbc/audiowaveform#installation.
 ~~~
 
 Install requirements and cd to label_buddy/
