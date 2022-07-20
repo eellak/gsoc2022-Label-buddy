@@ -5,7 +5,9 @@ from rarfile import RarFile
 from itertools import chain
 import os
 import json
+import librosa
 
+from ml_utils import mk_preds_vector, define_YOHO
 from django.core.files import File
 from django.db.models import Q
 from django.template.defaulttags import register
@@ -627,6 +629,7 @@ def get_table_id(current_page, objects_per_page, loop_counter):
     return ((current_page - 1) * objects_per_page) + loop_counter
 
 def get_audio_onset(file_path):
+
     x, sr = librosa.load(file_path)
     onset_frames = librosa.onset.onset_detect(x, sr=sr, wait=1, pre_avg=1, post_avg=1, pre_max=1, post_max=1)
     onset_times = librosa.frames_to_time(onset_frames)
@@ -637,4 +640,14 @@ def get_audio_onset(file_path):
         f.write('\n'.join(['%.4f' % onset_time for onset_time in onset_times]))
 
 
+def get_ml_audio_prediction(audio_file_path): 
 
+    '''
+    Predict audio tags using machine learning model.
+    '''
+
+    model = define_YOHO()
+    model.load_weights("YOHO-music-speech.h5")
+    preds = mk_preds_vector(audio_file_path, model)
+
+    return preds
