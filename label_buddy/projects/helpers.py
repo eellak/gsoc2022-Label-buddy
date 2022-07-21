@@ -5,14 +5,13 @@ from rarfile import RarFile
 from itertools import chain
 import os
 import json
-import librosa
 
-from ml_utils import mk_preds_vector, define_YOHO
 from django.core.files import File
 from django.db.models import Q
 from django.template.defaulttags import register
 
 from .models import Project, Label
+from .ml_utils import mk_preds_vector, define_YOHO
 from users.models import User
 from tasks.models import (
     Task,
@@ -628,17 +627,6 @@ def get_table_id(current_page, objects_per_page, loop_counter):
 
     return ((current_page - 1) * objects_per_page) + loop_counter
 
-def get_audio_onset(file_path):
-
-    x, sr = librosa.load(file_path)
-    onset_frames = librosa.onset.onset_detect(x, sr=sr, wait=1, pre_avg=1, post_avg=1, pre_max=1, post_max=1)
-    onset_times = librosa.frames_to_time(onset_frames)
-    # remove extension, .mp3, .wav etc.
-    file_name_no_extension, _ = os.path.splitext(file_path)
-    output_name = file_name_no_extension + '.beatmap.txt'
-    with open(output_name, 'wt') as f:
-        f.write('\n'.join(['%.4f' % onset_time for onset_time in onset_times]))
-
 
 def get_ml_audio_prediction(audio_file_path): 
 
@@ -647,7 +635,8 @@ def get_ml_audio_prediction(audio_file_path):
     '''
 
     model = define_YOHO()
-    model.load_weights("YOHO-music-speech.h5")
-    preds = mk_preds_vector(audio_file_path, model)
+    model.load_weights("/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy/projects/model_weigths/YOHO-music-speech.h5")
+    preds = mk_preds_vector('/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy' + audio_file_path, model)
+    preds_json = json.dumps(preds)
 
-    return preds
+    return preds_json

@@ -35,6 +35,7 @@ from tasks.models import (
     Status,
     Review_status,
 )
+
 from .helpers import (
     get_projects_of_user,
     get_user,
@@ -61,6 +62,7 @@ from .helpers import (
     delete_old_labels,
     users_to_string,
     get_audiowaveform_data,
+    get_ml_audio_prediction,
 )
 
 # Global variables
@@ -424,6 +426,7 @@ def project_page_view(request, pk):
                 new_task.project = project
                 new_task.save()
                 new_task.audiowaveform = get_audiowaveform_data(new_task.file.url)
+                new_task.annotation_prediction = get_ml_audio_prediction(new_task.file.url)
                 new_task.save()
                 
                 """
