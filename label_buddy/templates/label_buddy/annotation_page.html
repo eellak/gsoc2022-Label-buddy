@@ -18,6 +18,7 @@
     {{ annotation_result|json_script:"mydata" }}
     <script type="text/javascript"> 
         var audio_url = "{{ task.file.url }}";
+        var audio_waveform_data = "{{ task.audiowaveform }}";
         var task_id = "{{ task.id }}";
         var project_id = "{{ project.id }}";
         var django_csrf_token = "{{ csrf_token }}";

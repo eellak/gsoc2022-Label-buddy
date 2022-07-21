@@ -3,6 +3,8 @@ import random
 from zipfile import ZipFile
 from rarfile import RarFile
 from itertools import chain
+import os
+import json
 
 from django.core.files import File
 from django.db.models import Q
@@ -500,7 +502,7 @@ def add_tasks_from_compressed_file(compressed_file, project, file_extension):
     skipped_files = 0
 
     """
-    Create array to keep users already aaigned a task so the tasks are assigned with uniform distribution,
+    Create array to keep users already asigned a task so the tasks are assigned with uniform distribution,
     if users_can_see_other_queues is false.
     """
 
@@ -519,6 +521,8 @@ def add_tasks_from_compressed_file(compressed_file, project, file_extension):
             # Create task
             new_task = Task.objects.create(project=project, original_file_name=filename)
             new_task.file.save(filename, File(new_file))
+            new_task.audiowaveform = get_audiowaveform_data(new_task.file.url)
+            new_task.save()
 
             # Assign task
             if not project.users_can_see_other_queues and project.annotators.exists():
@@ -581,6 +585,28 @@ def project_statistics(project, user):
         return all_tasks_count, annotated_tasks, not_annotated_tasks
 
 
+# GSoC22 
+def get_audiowaveform_data(audio_file):
+
+    """
+    Return audio waveform data for the task.
+    """
+
+    json_name_without_extension = audio_file.split(".")[0]
+    json_name = "media/data/" + json_name_without_extension.split("audio/")[1]
+
+    os.system(f'audiowaveform -i {audio_file[1:]} -o {json_name}.json --pixels-per-second 20 --bits 8')
+
+    with open(json_name + ".json", "r") as f:
+        json_data = json.load(f)
+    
+    f.close()
+    os.remove(json_name + ".json")
+
+    return json_data["data"]
+
+
+
 @register.filter
 def get_item(dictionary, key):
 
@@ -599,3 +625,6 @@ def get_table_id(current_page, objects_per_page, loop_counter):
     """
 
     return ((current_page - 1) * objects_per_page) + loop_counter
+
+
+

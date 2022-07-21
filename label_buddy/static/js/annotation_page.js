@@ -208,13 +208,14 @@ function fixNumberOfRegions() {
         $(btn).find('#count').text(counter++ + ".")
     }
 }
-//----------------------------------------------------------------------------------------------
 
+//----------------------------------------------------------------------------------------------
 
 document.addEventListener('DOMContentLoaded', function() {
     // Init wavesurfer
     wavesurfer = WaveSurfer.create({
         container: '#waveform',
+        backend: 'MediaElement',
         height: 250,
         pixelRatio: 1,
         scrollParent: true,
@@ -222,9 +223,8 @@ document.addEventListener('DOMContentLoaded', function() {
         splitChannels: false,
         waveColor: '#ddd',
         progressColor: '#ddd',
-        backend: 'MediaElement',
         plugins: [
-            WaveSurfer.regions.create(),
+            WaveSurfer.regions.create({}),
             WaveSurfer.timeline.create({
                 container: '#wave-timeline'
             }),
@@ -240,7 +240,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }),
         ]
     });
-    wavesurfer.load(audio_url);
+
+    wavesurfer.load(audio_url, JSON.parse(audio_waveform_data), 'auto');
 
     /* Regions */
 
@@ -253,6 +254,17 @@ document.addEventListener('DOMContentLoaded', function() {
         // if there is a result load regions of annotation
         if(result && result.length != 0) {
             loadRegions(result);
+        }
+    });
+
+    // audioprocess as the audio is playing - calculate the loaded percentage each time
+    wavesurfer.on('audioprocess', function() {
+        let loaded_percent = get_loaded_precentage(wavesurfer.backend.media);
+        if (loaded_percent < 1){
+            NProgress.set(loaded_percent); 
+        }
+        if (loaded_percent == 1){
+            NProgress.done();
         }
     });
 
@@ -411,6 +423,7 @@ function loadRegions(result) {
         wavesurfer.addRegion({
             start: region['value']['start'],
             end: region['value']['end'],
+            loop: false,
             color: rgbToRgba(getLabelColorByValue(region['value']['label']), initial_opacity),
             data: {
                 label: region['value']['label'],

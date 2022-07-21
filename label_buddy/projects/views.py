@@ -59,7 +59,8 @@ from .helpers import (
     next_unlabeled_task_id,
     add_tasks_from_compressed_file,
     delete_old_labels,
-    users_to_string
+    users_to_string,
+    get_audiowaveform_data,
 )
 
 # Global variables
@@ -422,7 +423,9 @@ def project_page_view(request, pk):
                 new_task.original_file_name = request.FILES['file'].name
                 new_task.project = project
                 new_task.save()
-
+                new_task.audiowaveform = get_audiowaveform_data(new_task.file.url)
+                new_task.save()
+                
                 """
                 If project users_can_see_other_queues is false, assign task to a random annotator.
                 """
