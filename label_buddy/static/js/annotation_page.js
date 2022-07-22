@@ -268,6 +268,13 @@ document.addEventListener('DOMContentLoaded', function() {
         if(result && result.length != 0) {
             loadRegions(result);
         }
+        let preds = JSON.stringify(annotation_prediction).split(",");
+        let ending = (preds[1].split(" ")[1])
+        let starting = (preds[0].split("[[")[1])
+        console.log(preds);
+        console.log(ending);
+        console.log(starting);
+        wavesurfer.addRegion({start:starting, end:ending});
     });
 
     // audioprocess as the audio is playing - calculate the loaded percentage each time

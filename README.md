@@ -1,14 +1,20 @@
 # Google Summer of Code with GFOSS :sun_with_face: 
 
-**Project:** Creation of a multi user audio first annotation tool
+**Project:** Label Buddy 2.0: Automated audio-tagging using transfer learning
 
-**Mentors:** Pantelis Vikatos, Markos Gogoulos
+**Mentors:** Pantelis Vikatos, Agisilaos Kounelis, Ioannis Sina
 
-**Student:** Ioannis Sina
+**Past Mentor:** Markos Gogoulos
+
+**Contributor:** Ioannis Prokopiou
+
+**Past Contributor:** Ioannis Sina
 
 # Introduction
 
 An annotation tool helps people (without the need for specific knowledge) to mark a segment of an audio file (waveform), an image or text etc. in order to specify the segment’s properties. Annotation tools are used in machine learning applications such as Natural Language Processing (NLP) and Object Detection in order to train machines to identify objects or text. While there is a variety of annotation tools, most of them lack the multi-user feature (multiple users annotating a single project simultaneously) whose implementation is planned in this project. The audio annotation process is usually tedious and time consuming therefore, these tools (annotation tools which provide the multi-user feature) are necessary in order to reduce the effort needed as well as to enhance the quality of annotations. Since in most tasks related to audio classification, speech recognition, music detection etc., machine and deep learning models are trained and evaluated with the use audio that has previously been annotated by humans, the implementation of such a tool will lead to higher accuracy of annotated files, as they will have been annotated by more than one human, providing a more reliable dataset. In effect, multi-user annotation will reduce the possibility of human error e.g. an occasional mistaken labelling of a segment might be pointed out by another annotator.
+
+Deep learning models can be used for annotation and can kickstart your development effort by enabling faster annotation of datasets for AI algorithms. Deep learning models are sensitive to the data used to train them, this makes it hard to train the deep learning models on a specific dataset and deploy them on a different dataset. As a solution, transfer learning for sound could help adapt pretrained models into various datasets. Deep learning models used for annotation can be tuned and improved by retraining these pretrained models based on new datasets.
 
 **Already existing annotation tools:**
 
@@ -20,33 +26,28 @@ Computer Vision Annotation Tool (CVAT): https://github.com/openvinotoolkit/cvat
 
 # Project goals :dart: 
 
-We will try to develop a web application (audio annotation tool) which will provide the multi-user feature and a pleasant UI for users. There will be three distinct types of users in the application: Managers, Annotators and Reviewers.
+This project is an enhancement to the previous work that has been done previously. Its goal is to make annotation simple and easy while also providing a well-defined manager-annotator-reviewer framework. The goal of this project is to use Transfer Learning (TL) approaches to make the annotation process easier for the user by offering label predictions. The golas can be devides in two categories of tasks: Machine Learning and Django.
 
-**Managers will:**
+**Machine Learning:**
 
-* Create projects and edit their configurations (title, annotators for each project etc.)
-* Upload audio files (links, csv of links or local files) for each project created
-* Add/edit labels (labels are used by annotators in order to mark segments of an audio file)
-* Assign roles to users (specify who will be annotator or reviewer)
-* Export annotations in JSON or CSV format
+* Conduct research for the appropriate model architecture
+* Modify the annotation process by integrating the model
+* Test the model by providing evaluation metrics
 
-**Reviewers will:**
+**Django:**
 
-* See all annotations done by annotators
-* Set annotations as approved or rejected
-* Add comments to annotations done
-
-**Annotators will:**
-
-* Annotate audio files (tasks) assigned to them (by managers)
-* Update annotations
-* Submit tasks as annotated
+* Add lazy loading for the audio files: load segments of the file when needed (i.e., YouTube). This will lead to better performance when the audio file is too big.
+* Add Django Testing
+* Dockerization
+* Add documentation
+* Add rar file upload functionality - currently, users can only upload zip files (optional)
+* UI improvements (optional)
 
 # Steps to run
 
 Clone repository and cd to the folder
 ~~~
-git clone https://github.com/eellak/gsoc2021-audio-annotation-tool/
+git clone https://github.com/eellak/gsoc2022-Label-buddy
 cd gsoc2021-audio-annotation-tool
 ~~~
 
@@ -64,6 +65,8 @@ Activate it for **Windows**
 ~~~
 env\Scripts\activate
 ~~~
+
+Install audiowaveform programm following the given steps: https://github.com/bbc/audiowaveform#installation
 
 Install requirements and cd to label_buddy/
 ~~~
