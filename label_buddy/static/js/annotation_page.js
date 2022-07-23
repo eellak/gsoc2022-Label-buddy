@@ -7,6 +7,8 @@ var color_when_selected = '#74deed';
 var initial_opacity = .2;
 var selected_region_opacity = .9;
 var wavesurfer; // eslint-disable-line no-var
+var predictions_enabled = false;
+
 
 function toggleIcon(button){
     $(button).find('i').remove();
@@ -15,6 +17,18 @@ function toggleIcon(button){
     }
     else {
         $(button).html($('<i/>',{class:'fas fa-pause'})).append(' Pause');
+    }
+}
+
+function togglePredictionIcon(button){
+    $(button).find('i').remove();
+    if (predictions_enabled == false) {
+        $(button).html($('<i/>',{class:'fas fa-magic'})).append(' Enable Predictions');
+        predictions_enabled = true;
+    }
+    else {
+        $(button).html($('<i/>',{class:'fas fa-times'})).append(' Disable Predictions');
+        predictions_enabled = false;
     }
 }
 
