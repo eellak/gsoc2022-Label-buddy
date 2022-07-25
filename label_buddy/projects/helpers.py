@@ -637,6 +637,6 @@ def get_ml_audio_prediction(audio_file_path):
     model = define_YOHO()
     model.load_weights("/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy/projects/model_weigths/YOHO-music-speech.h5")
     preds = mk_preds_vector('/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy' + audio_file_path, model)
-    preds_json = json.dumps(preds)
+    preds_json = json.loads(json.dumps(preds))
 
     return preds_json

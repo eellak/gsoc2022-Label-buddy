@@ -9,8 +9,6 @@ var selected_region_opacity = .9;
 var wavesurfer; // eslint-disable-line no-var
 var predictions_enabled = false;
 var wavesurfer_ready = false;
-var prediction = null;
-
 
 function toggleIcon(button){
     $(button).find('i').remove();
@@ -570,18 +568,12 @@ $('#remove_all_regions').click( function(e) {
  
  document.getElementById('predictions-button').addEventListener("click", function() {
     // get annotation from the python script
-    AnnotationPredictionsDataRequest();
-    if (prediction == null) {
-        const sleep = ms => new Promise(r => setTimeout(r, 2000));
+    if (predictions_enabled == false){
+        AnnotationPredictionsDataRequest();
+    }else{
+        //delete predicted regions
     }
-    console.log(prediction);
-    // let preds = JSON.parse(annotation_prediction);
-    // console.log(preds[1]);
-    let starting = 1.0
-    let ending = 3.0
-    if (wavesurfer_ready) {
-        wavesurfer.addRegion({start:starting, end:ending, id: "pred1"});
-    }
+
  });
 
  function AnnotationPredictionsDataRequest() {
@@ -607,6 +599,13 @@ $('#remove_all_regions').click( function(e) {
 
 function downloadAnnotationPredictions(result) {
 
-    prediction = result['predictions'];
+    let prediction = result['predictions'];
     NProgress.done();
+
+    // add region for each prediction
+    for(const pred_region of prediction) {
+        if (pred_region[2] == 'music') {
+            wavesurfer.addRegion({start: pred_region[0], end: pred_region[1], color: '#ff0000', loop: false});
+        }
+    }
 }
