@@ -1,4 +1,6 @@
+from pickle import NONE
 import random
+import json
 from json import dumps, loads
 
 from django import forms
@@ -426,7 +428,6 @@ def project_page_view(request, pk):
                 new_task.project = project
                 new_task.save()
                 new_task.audiowaveform = get_audiowaveform_data(new_task.file.url)
-                new_task.annotation_prediction = get_ml_audio_prediction(new_task.file.url)
                 new_task.save()
                 
                 """
@@ -917,3 +918,67 @@ def api_root(request, format=None):
         'users': reverse('user-list', request=request, format=format),
         'tasks': reverse('task-list', request=request, format=format),
     })
+
+class AnnotationPredictions(APIView):
+
+    """
+    API endpoint for annotation prediction data for an audio.
+    Only post is implemented here.
+    """
+
+    def get_project(self, pk):
+        try:
+            return Project.objects.get(pk=pk)
+        except PermissionDenied:
+            return Response({"message": "No permissions"}, status=status.HTTP_401_UNAUTHORIZED)
+        except Project.DoesNotExist:
+            return Response({"message": "Project does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_task(self, task_pk):
+        try:
+            return Task.objects.get(pk=task_pk)
+        except PermissionDenied:
+            return Response({"message": "No permissions"}, status=status.HTTP_401_UNAUTHORIZED)
+        except Task.DoesNotExist:
+            return Response({"message": "Task does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request, pk, task_pk):
+
+        # Checks for user
+        user = get_user(request.user.username)
+        if not user or (user != request.user):
+            return Response({"message": "Something is wrong with the user!"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if project exists
+        project = self.get_project(pk)
+        if isinstance(project, HttpResponse):
+            return Response(project.data, status=project.status_code)
+
+        # Check if task exists
+        task = self.get_task(task_pk)
+        if isinstance(task, HttpResponse):
+            return Response(task.data, status=task.status_code)
+
+        # Check if user is part of this project
+        if (user not in project.reviewers.all()) and (user not in project.annotators.all()) and (user not in project.managers.all()):
+            return Response({"message": "You are not involved to this project!"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # If all validations pass, return exported json
+        if (task.annotation_prediction is None):
+            preds_json = get_ml_audio_prediction(task.file.url)
+            task.annotation_prediction = preds_json
+            task.save()
+        else:
+            preds_json = task.annotation_prediction
+
+        if request.data['PredictionApproved']:
+            message = "Succesful Prediction."
+        else:
+            message = "Error Occured during Prediction." 
+
+        data = {
+            "predictions": preds_json,
+            "message": message
+        }
+
+        return Response(data, status=status.HTTP_200_OK)

@@ -8,6 +8,8 @@ var initial_opacity = .2;
 var selected_region_opacity = .9;
 var wavesurfer; // eslint-disable-line no-var
 var predictions_enabled = false;
+var wavesurfer_ready = false;
+var prediction = null;
 
 
 function toggleIcon(button){
@@ -180,9 +182,12 @@ function getRegionButton(new_region) {
     // new_region_button.style.backgroundColor = new_region.data['color'];
     new_region_button.style.opacity = initial_opacity;
     new_region_button.id = new_region.id;
-    new_region_button.title = "Label: " + new_region.data['label'];
+    if (new_region.data['label']) {
+        new_region_button.title = "Label: " + new_region.data['label'];
+    }else {
+        new_region_button.title = "Label: " + "Prediction"
+    }
 
-   
     new_region_button.setAttribute( "onClick", "selectRegionButton(this);" );
     new_region_button.setAttribute( "onmouseover", "hoverRegionButtonIn(this);" );
     new_region_button.setAttribute( "onmouseout", "hoverRegionButtonOut(this);" );
@@ -196,7 +201,11 @@ function getRegionButton(new_region) {
     let icon = document.createElement('i');
     icon.className = 'fas fa-music';
     icon.style.marginRight = "10px";
-    icon.style.color = new_region.data['color'];
+    if (new_region.data['color']){
+        icon.style.color = new_region.data['color'];
+    }else{
+        icon.style.color = new_region.color;
+    }
 
     let timings = document.createElement("SPAN");
     timings.id = "timings";
@@ -209,9 +218,9 @@ function getRegionButton(new_region) {
     return new_region_button;
 }
 
-function add_region_to_section(region) {
+function add_region_to_section(region, prediction_label=null){
     // load region to region section
-    let new_region_button = getRegionButton(region);
+    let new_region_button = getRegionButton(region, prediction_label);
     $('#regions-div').append(new_region_button);
 }
 
@@ -274,6 +283,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // load regions of existing annotation (if exists)
     wavesurfer.on('ready', function() {
+        wavesurfer_ready = true;
         wavesurfer.setPlaybackRate(1);
         wavesurfer.zoom(0); // initial zoom
         wavesurfer.setVolume(1); // initial volume
@@ -282,13 +292,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if(result && result.length != 0) {
             loadRegions(result);
         }
-        let preds = JSON.stringify(annotation_prediction).split(",");
-        let ending = (preds[1].split(" ")[1])
-        let starting = (preds[0].split("[[")[1])
-        console.log(preds);
-        console.log(ending);
-        console.log(starting);
-        wavesurfer.addRegion({start:starting, end:ending});
     });
 
     // audioprocess as the audio is playing - calculate the loaded percentage each time
@@ -564,3 +567,46 @@ $('#remove_all_regions').click( function(e) {
     });
     return false; 
 } );
+ 
+ document.getElementById('predictions-button').addEventListener("click", function() {
+    // get annotation from the python script
+    AnnotationPredictionsDataRequest();
+    if (prediction == null) {
+        const sleep = ms => new Promise(r => setTimeout(r, 2000));
+    }
+    console.log(prediction);
+    // let preds = JSON.parse(annotation_prediction);
+    // console.log(preds[1]);
+    let starting = 1.0
+    let ending = 3.0
+    if (wavesurfer_ready) {
+        wavesurfer.addRegion({start:starting, end:ending, id: "pred1"});
+    }
+ });
+
+ function AnnotationPredictionsDataRequest() {
+    // xmlhttp request for exporting data
+    const xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            // Typical action to be performed when the document is ready:
+            downloadAnnotationPredictions(JSON.parse(this.responseText));
+        } else if(this.readyState == 4 && (this.status == 400 || this.status == 401)) {
+            showAlert(JSON.parse(this.responseText)['message'], this.status);
+        }
+    };
+    let url = "/api/v1/projects/" + project_id + "/tasks/" + task_id + "/annotation/predict";
+    xhttp.open("POST", url, true);
+    xhttp.setRequestHeader("X-CSRFToken", django_csrf_token);
+    xhttp.setRequestHeader("Content-Type", "application/json");
+    NProgress.start();
+    xhttp.send(JSON.stringify( {
+        "PredictionApproved": $('#PredictionApproved').is(':checked')
+    }));
+}
+
+function downloadAnnotationPredictions(result) {
+
+    prediction = result['predictions'];
+    NProgress.done();
+}
