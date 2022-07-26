@@ -22,13 +22,12 @@ function toggleIcon(button){
 
 function togglePredictionIcon(button){
     $(button).find('i').remove();
-    if (predictions_enabled == false) {
+    if (predictions_enabled == true) {
         $(button).html($('<i/>',{class:'fas fa-magic'})).append(' Enable Predictions');
-        predictions_enabled = true;
-    }
-    else {
-        $(button).html($('<i/>',{class:'fas fa-times'})).append(' Disable Predictions');
         predictions_enabled = false;
+    }else {
+        $(button).html($('<i/>',{class:'fas fa-times'})).append(' Disable Predictions');
+        predictions_enabled = true;
     }
 }
 
@@ -180,11 +179,7 @@ function getRegionButton(new_region) {
     // new_region_button.style.backgroundColor = new_region.data['color'];
     new_region_button.style.opacity = initial_opacity;
     new_region_button.id = new_region.id;
-    if (new_region.data['label']) {
-        new_region_button.title = "Label: " + new_region.data['label'];
-    }else {
-        new_region_button.title = "Label: " + "Prediction"
-    }
+    new_region_button.title = "Label: " + new_region.data['label'];
 
     new_region_button.setAttribute( "onClick", "selectRegionButton(this);" );
     new_region_button.setAttribute( "onmouseover", "hoverRegionButtonIn(this);" );
@@ -199,11 +194,7 @@ function getRegionButton(new_region) {
     let icon = document.createElement('i');
     icon.className = 'fas fa-music';
     icon.style.marginRight = "10px";
-    if (new_region.data['color']){
-        icon.style.color = new_region.data['color'];
-    }else{
-        icon.style.color = new_region.color;
-    }
+    icon.style.color = new_region.data['color'];
 
     let timings = document.createElement("SPAN");
     timings.id = "timings";
@@ -216,9 +207,9 @@ function getRegionButton(new_region) {
     return new_region_button;
 }
 
-function add_region_to_section(region, prediction_label=null){
+function add_region_to_section(region, prediction_label=null, prediction_color=null){
     // load region to region section
-    let new_region_button = getRegionButton(region, prediction_label);
+    let new_region_button = getRegionButton(region, prediction_label, prediction_color);
     $('#regions-div').append(new_region_button);
 }
 
@@ -373,7 +364,11 @@ document.addEventListener('DOMContentLoaded', function() {
             region.data['label'] = selected_label.value;
             region.data['color'] = selected_label_color;
         } else {
-            add_region_to_section(region);
+            // if label is not selected, the regions have been created by the predictions
+            let pred_region_id = region.id;
+            region.data['label'] = pred_region_id.split('_')[2];
+            region.data['color'] = region.color;
+            add_region_to_section(region, region.data['label']);
         }
     });
 
@@ -426,6 +421,7 @@ function createResult() {
                 "start": region.start,
                 "end": region.end,
                 "label": region.data['label'],
+                "id": region.id
             }
         }
         result.push(region_dict);
@@ -458,11 +454,13 @@ function loadRegions(result) {
         wavesurfer.addRegion({
             start: region['value']['start'],
             end: region['value']['end'],
+            id: region['value']['id'],
             loop: false,
             color: rgbToRgba(getLabelColorByValue(region['value']['label']), initial_opacity),
             data: {
                 label: region['value']['label'],
-                color: getLabelColorByValue(region['value']['label'])
+                color: getLabelColorByValue(region['value']['label']),
+                id: region['value']['id']
             }
         });
     }
@@ -568,12 +566,23 @@ $('#remove_all_regions').click( function(e) {
  
  document.getElementById('predictions-button').addEventListener("click", function() {
     // get annotation from the python script
-    if (predictions_enabled == false){
+    if (predictions_enabled == true){
         AnnotationPredictionsDataRequest();
     }else{
         //delete predicted regions
-    }
+        //for each region inwavesurfer.regions.list
+        Object.keys(wavesurfer.regions.list).forEach(function (id) {
 
+            let region_id = wavesurfer.regions.list[id].id;
+            let region_button = document.getElementById(region_id);
+
+            if (region_id.includes("prediction")){
+                wavesurfer.regions.list[id].remove();
+                region_button.remove();
+                regions_count -= 1;
+            }       
+        });
+    }
  });
 
  function AnnotationPredictionsDataRequest() {
@@ -603,9 +612,14 @@ function downloadAnnotationPredictions(result) {
     NProgress.done();
 
     // add region for each prediction
+    let pred_counter = 0; 
     for(const pred_region of prediction) {
-        if (pred_region[2] == 'music') {
-            wavesurfer.addRegion({start: pred_region[0], end: pred_region[1], color: '#ff0000', loop: false});
-        }
+
+        let starting = pred_region[0]
+        let ending = pred_region[1]
+        let label = pred_region[2]
+
+        wavesurfer.addRegion({start: starting, end: ending, color: rgbToRgba(getLabelColorByValue(label), initial_opacity), id: "prediction_" + String(pred_counter) + "_" + label});
+        pred_counter += 1;
     }
 }
