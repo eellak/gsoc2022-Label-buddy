@@ -366,8 +366,9 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             // if label is not selected, the regions have been created by the predictions
             let pred_region_id = region.id;
-            region.data['label'] = pred_region_id.split('_')[2];
-            region.data['color'] = region.color;
+            let label = pred_region_id.split('_')[2];
+            region.data['label'] = label;
+            region.data['color'] = getLabelColorByValue(label);
             add_region_to_section(region, region.data['label']);
         }
     });
