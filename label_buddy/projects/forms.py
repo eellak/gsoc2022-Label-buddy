@@ -1,6 +1,5 @@
 from django import forms
-
-from .models import Project
+from .models import Project, PredictionModels
 
 
 class ProjectForm(forms.ModelForm):
@@ -22,6 +21,8 @@ class ProjectForm(forms.ModelForm):
             "rows": 4,
         }
     ))
+    prediction_model = forms.ModelChoiceField(queryset=PredictionModels.objects.all())
+
     new_labels = forms.CharField(label="Labels", required=False, widget=forms.Textarea(
         attrs={
             "placeholder": "A comma separated list of new labels",
@@ -37,6 +38,7 @@ class ProjectForm(forms.ModelForm):
             "description",
             "instructions",
             "logo",
+            "prediction_model",
             "new_labels",
             "users_can_see_other_queues",
             "annotators",

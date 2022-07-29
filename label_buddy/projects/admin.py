@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 # Relative import
-from .models import Project, Label
+from .models import Project, Label, PredictionModels
 
 
 # Admin now has filters and search
@@ -28,5 +28,19 @@ class LabelAdmin(admin.ModelAdmin):
     list_display = ["name", "parent"]
 
 
+class PredictionModelsAdmin(admin.ModelAdmin):
+
+    """
+    PredictionModels class for the admin site. list_display shows the fields
+    displayed in the admin site.
+    """
+
+    search_fields = ["title"]
+    list_display = ["id", "title", "output_labels", "weight_file", "test_dataset", "current_accuracy_precentage"]
+    ordering = ("id",)
+    list_filter = ["output_labels", "current_accuracy_precentage"]
+
+
 admin.site.register(Project, ProjectAmdin)
 admin.site.register(Label, LabelAdmin)
+admin.site.register(PredictionModels, PredictionModelsAdmin)

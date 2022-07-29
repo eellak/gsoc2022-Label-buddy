@@ -69,6 +69,23 @@ class Project(models.Model):
         return '%s' % (self.title)
 
 
+class PredictionModels(models.Model):
+
+    title = models.CharField(max_length=256, blank=True, null=True, default='', help_text='Prediction Model title')
+    output_labels = models.TextField(blank=True, null=True, default='', help_text='Prediction Model output labels')
+    weight_file = models.FileField(upload_to='model_wights', blank=True, help_text='Prediction Model weights file')
+    test_dataset = models.FileField(upload_to='model_datasets', blank=True, help_text='Prediction Model test dataset')
+    current_accuracy_precentage = models.FloatField(blank=True, null=True, default=0, help_text='Current accuracy percentage')
+
+    class Meta:
+        ordering = ['id']
+
+    # How to display projects in admin
+    def __str__(self):
+        return '%s' % (self.title)
+
+
+
 @receiver(pre_save, sender=Project)
 def auto_delete_logo_on_change(sender, instance, **kwargs):
 
