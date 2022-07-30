@@ -25,7 +25,7 @@ from rest_framework import (
 from users.models import User
 from tasks.forms import TaskForm
 from tasks.serializers import TaskSerializer
-from .models import Project
+from .models import Project, PredictionModels
 from .serializers import ProjectSerializer
 from .permissions import UserCanCreateProject
 from .forms import ProjectForm
@@ -133,7 +133,8 @@ def project_create_view(request):
         if form.is_valid():
             project = form.save()
             # Add labels to project
-            add_labels_to_project(project, form.cleaned_data['new_labels'])
+            prediction_model_labels = form.cleaned_data['prediction_model'].output_labels
+            add_labels_to_project(project, form.cleaned_data['new_labels'] + ',' + prediction_model_labels)
             project.managers.add(user)
             messages.add_message(request, messages.SUCCESS, "Successfully created project %s." % project.title)
             return HttpResponseRedirect("/")
@@ -964,12 +965,14 @@ class AnnotationPredictions(APIView):
         if (user not in project.reviewers.all()) and (user not in project.annotators.all()) and (user not in project.managers.all()):
             return Response({"message": "You are not involved to this project!"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # If all validations pass, return exported json
+        # If all validations pass, return prediction json
+        # if the prediction has not been previoysle made, create and store it
         if (task.annotation_prediction is None):
             preds_json = get_ml_audio_prediction(task.file.url)
             task.annotation_prediction = preds_json
             task.save()
         else:
+            # Or get if from the database
             preds_json = task.annotation_prediction
 
         if request.data['PredictionApproved']:
