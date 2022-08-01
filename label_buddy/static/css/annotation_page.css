@@ -107,6 +107,12 @@
     box-shadow: none;
 }
 
+.predictions-button:disabled {
+    background: #999;
+    color: #555;
+    cursor: not-allowed;
+  }
+
 /* Style the button that is used to open and close the collapsible content */
 
 

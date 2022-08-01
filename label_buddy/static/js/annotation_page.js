@@ -10,6 +10,10 @@ var wavesurfer; // eslint-disable-line no-var
 var predictions_enabled = false;
 var wavesurfer_ready = false;
 
+// disable button if there is no prediction model associated with this project
+const predictions_button = document.getElementById('predictions-button');
+if (project_selected_prediction_model != 'None') predictions_button.disabled = false;
+
 function toggleIcon(button){
     $(button).find('i').remove();
     if (wavesurfer.backend.isPaused()) {
@@ -588,23 +592,26 @@ $('#remove_all_regions').click( function(e) {
 
  function AnnotationPredictionsDataRequest() {
     // xmlhttp request for exporting data
-    const xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-            // Typical action to be performed when the document is ready:
-            downloadAnnotationPredictions(JSON.parse(this.responseText));
-        } else if(this.readyState == 4 && (this.status == 400 || this.status == 401)) {
-            showAlert(JSON.parse(this.responseText)['message'], this.status);
-        }
-    };
-    let url = "/api/v1/projects/" + project_id + "/tasks/" + task_id + "/annotation/predict";
-    xhttp.open("POST", url, true);
-    xhttp.setRequestHeader("X-CSRFToken", django_csrf_token);
-    xhttp.setRequestHeader("Content-Type", "application/json");
-    NProgress.start();
-    xhttp.send(JSON.stringify( {
-        "PredictionApproved": $('#PredictionApproved').is(':checked')
-    }));
+    if (project_selected_prediction_model){
+        const xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                // Typical action to be performed when the document is ready:
+                downloadAnnotationPredictions(JSON.parse(this.responseText));
+            } else if(this.readyState == 4 && (this.status == 400 || this.status == 401)) {
+                showAlert(JSON.parse(this.responseText)['message'], this.status);
+            }
+        };
+        let url = "/api/v1/projects/" + project_id + "/tasks/" + task_id + "/annotation/predict";
+        xhttp.open("POST", url, true);
+        xhttp.setRequestHeader("X-CSRFToken", django_csrf_token);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        NProgress.start();
+        xhttp.send(JSON.stringify( {
+            "PredictionApproved": $('#PredictionApproved').is(':checked')
+        }));
+    }
+    
 }
 
 function downloadAnnotationPredictions(result) {
