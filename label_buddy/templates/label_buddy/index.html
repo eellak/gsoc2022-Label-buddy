@@ -85,9 +85,9 @@
 						<td class="my-table-text" style="text-align: right;">{{ annotations_count|get_item:project.id }}</td>
 
 						{% if project.prediction_model %}
-							<td class="my-table-text" style="color: green; text-align: right;" title="You can annotate tasks for this project">{{ project.prediction_model.title }}</td>
+							<td class="my-table-text" style="color: green; text-align: right;" title="Selected prediction model">{{ project.prediction_model.title }}</td>
 						{% else %}
-							<td class="my-table-text" style="text-align: right; color: red;" title="Add labels in order to annotate"> No model selected. </td>
+							<td class="my-table-text" style="text-align: right; color: red;" title="NO selected prediction model"> - </td>
 						{% endif %}
 						
 						{% if project.labels.count > 0 %}
