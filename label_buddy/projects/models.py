@@ -51,7 +51,7 @@ class PredictionModels(models.Model):
 
     # How to display projects in admin
     def __str__(self):
-        return '%s' % (self.title)
+        return f'Title: {self.title} | Labels: {self.output_labels}'
 
 
 class Project(models.Model):

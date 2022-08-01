@@ -46,6 +46,7 @@
 				</th>
 				<th class="my-table-header">Number of tasks</th>
 				<th class="my-table-header">Annotations</th>
+				<th class="my-table-header">Model</th>
 				<th class="my-table-header">Number of labels</th>
 				<th class="my-table-header">Annotator</th>
 				<th class="my-table-header">Reviewer</th>
@@ -82,6 +83,12 @@
 						
 						<td class="my-table-text" style="text-align: right;">{{ tasks_count|get_item:project.id }}</td>
 						<td class="my-table-text" style="text-align: right;">{{ annotations_count|get_item:project.id }}</td>
+
+						{% if project.prediction_model %}
+							<td class="my-table-text" style="color: green; text-align: right;" title="You can annotate tasks for this project">{{ project.prediction_model.title }}</td>
+						{% else %}
+							<td class="my-table-text" style="text-align: right; color: red;" title="Add labels in order to annotate"> No model selected. </td>
+						{% endif %}
 						
 						{% if project.labels.count > 0 %}
 							<td class="my-table-text" style="color: green; text-align: right;" title="You can annotate tasks for this project">{{ project.labels.count }}</td>
