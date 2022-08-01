@@ -8,19 +8,18 @@ def get_model_tuple(model):
 
     titles = model.objects.values('title')
     output_labels = model.objects.values('output_labels')
+    model_ids = model.objects.values('id')
+    models = model.objects.all()
 
-    counter = 1
-    for title, output_label in zip(titles, output_labels):
+    for model_id, title, output_label, model in zip(model_ids, titles, output_labels, models):
         
         title_str = str(title).split(':')[1].split('}')[0]
         output_label_str = str(output_label).split(':')[1].split('}')[0]
+        model_id_str = str(model_id).split(':')[1].split('}')[0]
 
-        new_entry = (str(counter), f"Name: {title_str} - Labels: {output_label_str}")
+        new_entry = (model, f"Name: {title_str} | Labels: {output_label_str}")
         tups = (new_entry, ) + tups
-        counter += 1
-
-    print(tups)
-
+    
     return tups
 
 
@@ -43,7 +42,7 @@ class ProjectForm(forms.ModelForm):
             "rows": 4,
         }
     ))
-    prediction_model = forms.ChoiceField(choices=get_model_tuple(PredictionModels), widget=forms.Select(attrs={"id": "prediction_model",}))
+    prediction_model = forms.ModelChoiceField(queryset=PredictionModels.objects.all(), empty_label="No model.", required=False, widget=forms.Select(attrs={"id": "prediction_model",}))
     new_labels = forms.CharField(label="Labels", required=False, widget=forms.Textarea(
         attrs={
             "placeholder": "A comma separated list of new labels",

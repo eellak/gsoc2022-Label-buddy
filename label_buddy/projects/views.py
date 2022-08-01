@@ -133,8 +133,13 @@ def project_create_view(request):
         if form.is_valid():
             project = form.save()
             # Add labels to project
-            prediction_model_labels = form.cleaned_data['prediction_model'].output_labels
-            add_labels_to_project(project, form.cleaned_data['new_labels'] + ',' + prediction_model_labels)
+            prediction_model_selected = form.cleaned_data['prediction_model']
+            # If prediction model is selected, combine the new labels
+            if (prediction_model_selected):
+                new_labels = form.cleaned_data['new_labels'] + ", " + prediction_model_selected.output_labels
+            else:
+                new_labels = form.cleaned_data['new_labels']
+            add_labels_to_project(project, new_labels)
             project.managers.add(user)
             messages.add_message(request, messages.SUCCESS, "Successfully created project %s." % project.title)
             return HttpResponseRedirect("/")

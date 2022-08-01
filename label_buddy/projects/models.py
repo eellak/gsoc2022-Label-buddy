@@ -38,6 +38,22 @@ class Label(models.Model):
         return '%s' % (self.name)
 
 
+class PredictionModels(models.Model):
+
+    title = models.CharField(max_length=256, unique=True, blank=True, null=True, default='', help_text='Prediction Model title')
+    output_labels = models.TextField(blank=True, null=True, default='', help_text='Prediction Model output labels')
+    weight_file = models.FileField(upload_to='model_weights', blank=True, help_text='Prediction Model weights file')
+    test_dataset = models.FileField(upload_to='model_datasets', blank=True, help_text='Prediction Model test dataset')
+    current_accuracy_precentage = models.FloatField(blank=True, null=True, default=0, help_text='Current accuracy percentage')
+
+    class Meta:
+        ordering = ['id']
+
+    # How to display projects in admin
+    def __str__(self):
+        return '%s' % (self.title)
+
+
 class Project(models.Model):
 
     """
@@ -58,6 +74,7 @@ class Project(models.Model):
     reviewers = models.ManyToManyField(User, blank=True, related_name='project_reviewer', help_text='Reviewers who will review annotations')
     annotators = models.ManyToManyField(User, blank=True, related_name='project_annotator', help_text='Annotators for the project')
     managers = models.ManyToManyField(User, blank=True, related_name='project_manager', help_text='Managers for the project')
+    prediction_model = models.ForeignKey(PredictionModels, to_field='title', on_delete=models.CASCADE, default="", null=True, blank=True, help_text='Prediciton Model for the project')
 
     project_type = EnumChoiceField(Project_type, default=Project_type.audio, help_text='Specify the type of the annotation (Audio, image or Video)')
 
@@ -67,23 +84,6 @@ class Project(models.Model):
     # How to display projects in admin
     def __str__(self):
         return '%s' % (self.title)
-
-
-class PredictionModels(models.Model):
-
-    title = models.CharField(max_length=256, blank=True, null=True, default='', help_text='Prediction Model title')
-    output_labels = models.TextField(blank=True, null=True, default='', help_text='Prediction Model output labels')
-    weight_file = models.FileField(upload_to='model_wights', blank=True, help_text='Prediction Model weights file')
-    test_dataset = models.FileField(upload_to='model_datasets', blank=True, help_text='Prediction Model test dataset')
-    current_accuracy_precentage = models.FloatField(blank=True, null=True, default=0, help_text='Current accuracy percentage')
-
-    class Meta:
-        ordering = ['id']
-
-    # How to display projects in admin
-    def __str__(self):
-        return '%s' % (self.title)
-
 
 
 @receiver(pre_save, sender=Project)
