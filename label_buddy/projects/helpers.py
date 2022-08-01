@@ -628,14 +628,16 @@ def get_table_id(current_page, objects_per_page, loop_counter):
     return ((current_page - 1) * objects_per_page) + loop_counter
 
 
-def get_ml_audio_prediction(audio_file_path): 
+def get_ml_audio_prediction(audio_file_path, model_title, model_weight_file): 
 
     '''
     Predict audio tags using machine learning model.
     '''
 
-    model = define_YOHO()
-    model.load_weights("/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy/projects/model_weigths/YOHO-music-speech.h5")
+    # TODO: Add support for other models
+    if (str(model_title) == 'YOHO'):
+        model = define_YOHO()
+    model.load_weights("/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy/media/" + str(model_weight_file))
     preds = mk_preds_vector('/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy' + audio_file_path, model)
     preds_json = json.loads(json.dumps(preds))
 

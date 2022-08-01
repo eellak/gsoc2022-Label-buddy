@@ -973,7 +973,7 @@ class AnnotationPredictions(APIView):
         # If all validations pass, return prediction json
         # if the prediction has not been previoysle made, create and store it
         if (task.annotation_prediction is None):
-            preds_json = get_ml_audio_prediction(task.file.url)
+            preds_json = get_ml_audio_prediction(task.file.url, project.prediction_model.title, project.prediction_model.weight_file)
             task.annotation_prediction = preds_json
             task.save()
         else:
