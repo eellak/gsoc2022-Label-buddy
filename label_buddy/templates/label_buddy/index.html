@@ -27,7 +27,8 @@
 		</h2>
 		{% if user.can_create_projects %}
 			<div id="header-div">
-				<a title="Create new project" href="{% url 'create_project'%}" class="btn btn-primary"> <i style="margin-right: 3%;" class="fas fa-plus-circle"></i> Create</a>
+				<a title="Create new project" href="{% url 'create_project'%}" class="btn btn-primary"> <i style="margin-right: 3%;" class="fas fa-plus-circle"></i> Create Project</a>
+				<a title="Add new prediction model" href="{% url 'add_prediction_model'%}" class="btn btn-primary"> <i style="margin-right: 3%;" class="fas fa-brain"></i> Add Prediction Model</a>
 			</div>
 		{% endif %}
 		
@@ -170,7 +171,8 @@
 			<h1 class="headers-page">No projects for you yet</h1>
 			{% if user.can_create_projects %}
 			<div id="header-div">
-				<a title="Create new project" href="{% url 'create_project'%}" class="btn btn-primary"> <i style="margin-right: 3%;" class="fas fa-plus-circle"></i> Create</a>
+				<a title="Create new project" href="{% url 'create_project'%}" class="btn btn-primary"> <i style="margin-right: 3%;" class="fas fa-plus-circle"></i> Create Project</a> 
+				<a title="Add new prediction model" href="{% url 'add_prediction_model'%}" class="btn btn-primary"> <i style="margin-right: 3%;" class="fas fa-brain"></i> Add Prediction Model</a>
 			</div>
 		{% endif %}
 	{% endif %}

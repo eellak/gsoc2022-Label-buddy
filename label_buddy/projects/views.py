@@ -28,7 +28,7 @@ from tasks.serializers import TaskSerializer
 from .models import Project, PredictionModels
 from .serializers import ProjectSerializer
 from .permissions import UserCanCreateProject
-from .forms import ProjectForm
+from .forms import ProjectForm, PredictionModelForm
 from tasks.models import (
     Task,
     Annotation,
@@ -157,6 +157,38 @@ def project_create_view(request):
     }
 
     return render(request, "label_buddy/create_project.html", context)
+
+@login_required
+def project_add_prediction_model_view(request):
+
+    """
+    Project create view for adding prediction models. Only user who have can_create_projects = True can access
+    this page.
+    """
+
+    form = PredictionModelForm()
+    user = get_user(request.user.username)
+
+    if not user or (user != request.user) or not user.can_create_projects:
+        return HttpResponseRedirect("/")
+
+    if request.method == "POST":
+        form = PredictionModelForm(request.POST, request.FILES)
+        if form.is_valid():
+            prediction_model = form.save()
+            messages.add_message(request, messages.SUCCESS, "Successfully added model %s." % prediction_model.title)
+            return HttpResponseRedirect("/")
+        else:
+            raise form.ValidationError("Something is wrong")
+    else:
+        # something wrong
+        pass
+
+    context = {
+        "form": form,
+    }
+
+    return render(request, "label_buddy/add_prediction_model.html", context)
 
 
 @login_required
