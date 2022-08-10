@@ -2,9 +2,13 @@ from pickle import NONE
 import random
 import json
 from json import dumps, loads
+import os
 
 from django import forms
 from django.core.paginator import Paginator
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
 from django.shortcuts import redirect, render
@@ -65,11 +69,12 @@ from .helpers import (
     users_to_string,
     get_audiowaveform_data,
     get_ml_audio_prediction,
+    check_if_model_file_is_valid,
 )
 
 # Global variables
 ACCEPTED_UPLOADED_EXTENSIONS = ['.wav', '.mp3', '.mp4', '.zip']
-ACCEPTED_MODEL_PREDICTION_UPLOADED_EXTENSIONS = ['pt', 'pth', 'h5', ]
+ACCEPTED_MODEL_PREDICTION_UPLOADED_EXTENSIONS = ['h5']
 
 
 def index(request):
@@ -188,7 +193,19 @@ def project_add_prediction_model_view(request):
             if file_extension not in ACCEPTED_MODEL_PREDICTION_UPLOADED_EXTENSIONS:
                 messages.add_message(request, messages.ERROR, "%s is not an accepted extension." % file_extension)
                 return redirect('/projects/add_prediction_model')
-            
+
+            # Check if file is valid
+            data = request.FILES['weight_file']
+            path = default_storage.save(f"model_file_test/{request.FILES['weight_file'].name}", ContentFile(data.read()))
+            tmp_model_file = os.path.join(settings.MEDIA_ROOT, path)
+
+            if not check_if_model_file_is_valid(tmp_model_file):
+                path = default_storage.delete(f"model_file_test/{request.FILES['weight_file'].name}")
+                messages.add_message(request, messages.ERROR, "File is not valid.")
+                return redirect('/projects/add_prediction_model')
+            else:
+                path = default_storage.delete(f"model_file_test/{request.FILES['weight_file'].name}")
+
             prediction_model.save()
 
             messages.add_message(request, messages.SUCCESS, "Successfully added model %s." % prediction_model.title)

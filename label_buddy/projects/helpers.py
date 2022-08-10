@@ -5,6 +5,8 @@ from rarfile import RarFile
 from itertools import chain
 import os
 import json
+from tensorflow import keras
+import torch
 
 from django.core.files import File
 from django.db.models import Q
@@ -24,8 +26,6 @@ from tasks.models import (
 
 # Global variables
 ACCEPTED_FORMATS = ['.wav', '.mp3', '.mp4', ]
-ACCEPTED_MODEL_PREDICTION_FORMATS = ['.pt', '.pth', '.h5', ]
-
 
 # Functions
 
@@ -645,5 +645,22 @@ def get_ml_audio_prediction(audio_file_path, model_title, model_weight_file):
     return preds_json
 
 
-def check_if_model_is_valid():
-    pass
+def check_if_model_file_is_valid(model_file):
+    
+    # Keras and Tensfoflow models
+    if str(model_file).split(".")[1] == 'h5':
+        try:
+            keras.models.load_model(str(model_file))
+            return True
+        except Exception as e:
+            print(e)
+            return False
+    
+    # # Tensorflow
+    # if (str(model_file).split(".")[1] == 'pt') or (str(model_file).split(".")[1] == 'pth'):
+    #     try:
+    #         torch.load(str(model_file))
+    #         return True
+    #     except Exception as e:
+    #         print(e)
+    #         return False
