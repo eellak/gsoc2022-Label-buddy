@@ -11,7 +11,19 @@
         <div class="modal-body">
             <div>
                 Projects shown in this page are projects which you are involved to.
-                You <b>must be manager, annotator or reviewer</b> for the project in order to enter it.
+                You <b>must be manager, annotator or reviewer</b> for the project in order to enter it.<br><br>
+
+                If you want to add a new prediction model meke sure you follow the steps below:<br><br>
+
+                <ul>
+                    <li>Give a unique name to your project.</li>
+                    <li>The output labels must be comma separated.</li>
+                    <li>Upload the entire model file (".h5" for Keras / ".pt" or ".pth" for TensorFlow).</li>
+                    <li>Make sure that the final output of the model is a list of lists containing starting time, 
+                    ending time and the predicted label for each segment. (i.e. [[0.0, 8.0, 'music'], [2.967, 8.0, 'speech']])</li>
+                    <li>Upload the dataset for the model to be evaluated in.</li>
+                    <li>Give the best evaluation precentage so far.</li>
+                </ul> 
             </div>
         </div>
     </div>
