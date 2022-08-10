@@ -1,5 +1,6 @@
 from django import forms
 from .models import Project, PredictionModels
+from django.core.validators import FileExtensionValidator
 
 
 def get_model_tuple(model):

@@ -7,7 +7,7 @@ from django import forms
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.utils import timezone
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpResponseRedirect, HttpResponse
@@ -69,6 +69,7 @@ from .helpers import (
 
 # Global variables
 ACCEPTED_UPLOADED_EXTENSIONS = ['.wav', '.mp3', '.mp4', '.zip']
+ACCEPTED_MODEL_PREDICTION_UPLOADED_EXTENSIONS = ['pt', 'pth', 'h5', ]
 
 
 def index(request):
@@ -175,14 +176,25 @@ def project_add_prediction_model_view(request):
     if request.method == "POST":
         form = PredictionModelForm(request.POST, request.FILES)
         if form.is_valid():
-            prediction_model = form.save()
+            prediction_model = form.save(commit=False)
+            
+            # Check if filed uploaded
+            if not prediction_model.weight_file:
+                messages.add_message(request, messages.ERROR, "Please upload a file.")
+                return redirect('/projects/add_prediction_model')
+
+            # Check if extension is accepted
+            file_extension = str(prediction_model.weight_file).split('.')[-1]
+            if file_extension not in ACCEPTED_MODEL_PREDICTION_UPLOADED_EXTENSIONS:
+                messages.add_message(request, messages.ERROR, "%s is not an accepted extension." % file_extension)
+                return redirect('/projects/add_prediction_model')
+            
+            prediction_model.save()
+
             messages.add_message(request, messages.SUCCESS, "Successfully added model %s." % prediction_model.title)
             return HttpResponseRedirect("/")
         else:
             raise form.ValidationError("Something is wrong")
-    else:
-        # something wrong
-        pass
 
     context = {
         "form": form,

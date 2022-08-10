@@ -24,6 +24,7 @@ from tasks.models import (
 
 # Global variables
 ACCEPTED_FORMATS = ['.wav', '.mp3', '.mp4', ]
+ACCEPTED_MODEL_PREDICTION_FORMATS = ['.pt', '.pth', '.h5', ]
 
 
 # Functions
@@ -642,3 +643,7 @@ def get_ml_audio_prediction(audio_file_path, model_title, model_weight_file):
     preds_json = json.loads(json.dumps(preds))
 
     return preds_json
+
+
+def check_if_model_is_valid():
+    pass
