@@ -3,6 +3,8 @@ from .models import Project, PredictionModels
 from django.core.validators import FileExtensionValidator
 
 
+API_CHOICES=[('tf','Tensoflow/Keras'),('pt','Pytorch')]
+
 def get_model_tuple(model):
 
     tups = ()
@@ -82,6 +84,7 @@ class PredictionModelForm(forms.ModelForm):
         }
     ))
     weight_file = forms.FileField(label="Model File", required=True, widget=forms.FileInput(attrs={"id": "weight_file"}))
+    api_choice = forms.ChoiceField(choices=API_CHOICES, required=True, label="API Choice", widget=forms.RadioSelect(attrs={"id": "api_choice", "name": "API Choice"}))
     test_dataset = forms.FileField(label="Test Dataset", required=False, widget=forms.FileInput(attrs={"id": "test_dataset"}))
     current_accuracy_precentage = forms.FloatField(label="Current Accuracy", required=False, widget=forms.NumberInput(attrs={"id": "current_accuracy_precentage"}))
 
@@ -91,6 +94,7 @@ class PredictionModelForm(forms.ModelForm):
             "title",
             "output_labels",
             "weight_file",
+            "api_choice",
             "test_dataset",
             "current_accuracy_precentage",
         ]

@@ -645,10 +645,10 @@ def get_ml_audio_prediction(audio_file_path, model_title, model_weight_file):
     return preds_json
 
 
-def check_if_model_file_is_valid(model_file):
+def check_if_model_file_is_valid(model_file, api_choice):
     
-    # Keras and Tensfoflow models
-    if str(model_file).split(".")[1] == 'h5':
+    # Keras/Tensorflow 
+    if api_choice == 'tf':
         try:
             keras.models.load_model(str(model_file))
             return True
@@ -656,11 +656,11 @@ def check_if_model_file_is_valid(model_file):
             print(e)
             return False
     
-    # # Tensorflow
-    # if (str(model_file).split(".")[1] == 'pt') or (str(model_file).split(".")[1] == 'pth'):
-    #     try:
-    #         torch.load(str(model_file))
-    #         return True
-    #     except Exception as e:
-    #         print(e)
-    #         return False
+    # Tensorflow
+    if api_choice == 'pt':
+        try:
+            torch.load(str(model_file))
+            return True
+        except Exception as e:
+            print(e)
+            return False

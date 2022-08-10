@@ -199,7 +199,7 @@ def project_add_prediction_model_view(request):
             path = default_storage.save(f"model_file_test/{request.FILES['weight_file'].name}", ContentFile(data.read()))
             tmp_model_file = os.path.join(settings.MEDIA_ROOT, path)
 
-            if not check_if_model_file_is_valid(tmp_model_file):
+            if not check_if_model_file_is_valid(tmp_model_file, form.cleaned_data['api_choice']):
                 path = default_storage.delete(f"model_file_test/{request.FILES['weight_file'].name}")
                 messages.add_message(request, messages.ERROR, "File is not valid.")
                 return redirect('/projects/add_prediction_model')
