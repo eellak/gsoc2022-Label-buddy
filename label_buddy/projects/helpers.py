@@ -645,22 +645,27 @@ def get_ml_audio_prediction(audio_file_path, model_title, model_weight_file):
     return preds_json
 
 
-def check_if_model_file_is_valid(model_file, api_choice):
+def check_if_model_file_is_valid(model_file):
     
     # Keras/Tensorflow 
-    if api_choice == 'tf':
-        try:
-            keras.models.load_model(str(model_file))
-            return True
-        except Exception as e:
-            print(e)
-            return False
+    try:
+        print("Trying to load model on Keras...")
+        keras.models.load_model(str(model_file))
+        print("Model loaded successfully on Keras.")
+        return True
+    except Exception as e:
+        print("Model could not be loaded on Keras. Trying to load model on Tensorflow...")
+        print(e)
     
     # Tensorflow
-    if api_choice == 'pt':
-        try:
-            torch.load(str(model_file))
-            return True
-        except Exception as e:
-            print(e)
-            return False
+    try:
+        print("Trying to load model on Tensorflow...")
+        model = torch.load(str(model_file))
+        model.eval()
+        print("Model loaded successfully on Tensorflow.")
+        return True
+    except Exception as e:
+        print("Loading on Tensorflow failed.")
+        print(e)
+
+    return False
