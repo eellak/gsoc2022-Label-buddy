@@ -7,6 +7,8 @@ import os
 import json
 from tensorflow import keras
 import torch
+from musicnn.extractor import extractor
+import numpy as np
 
 from django.core.files import File
 from django.db.models import Q
@@ -629,6 +631,20 @@ def get_table_id(current_page, objects_per_page, loop_counter):
     return ((current_page - 1) * objects_per_page) + loop_counter
 
 
+def musicnn_prediction_formating(tags_with_max_likelihoods):
+
+    final_preds = []
+
+    starting_time = 0.0
+    for tag_with_max_likelihoods in tags_with_max_likelihoods:
+        ending_time = starting_time + 3.0
+        final_pred = [starting_time, ending_time, tag_with_max_likelihoods]
+        starting_time = ending_time
+        final_preds.append(final_pred)
+
+    return final_preds
+
+
 def get_ml_audio_prediction(audio_file_path, model_title, model_weight_file): 
 
     '''
@@ -638,8 +654,15 @@ def get_ml_audio_prediction(audio_file_path, model_title, model_weight_file):
     # TODO: Add support for other models
     if (str(model_title) == 'YOHO'):
         model = define_YOHO()
-    model.load_weights("/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy/media/" + str(model_weight_file))
-    preds = mk_preds_vector('/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy' + audio_file_path, model)
+        model.load_weights("/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy/media/" + str(model_weight_file))
+        preds = mk_preds_vector('/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy' + audio_file_path, model)
+
+    if (str(model_title) == 'musicnn'):
+        taggram, tags, features = extractor('/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy' + audio_file_path, input_length=3, model='MTT_musicnn', extract_features=True)
+        max_likelihoods_pes_timestep = np.argmax(taggram, axis=1)
+        tags_with_max_likelihoods = [tags[i] for i in max_likelihoods_pes_timestep]
+        preds = musicnn_prediction_formating(tags_with_max_likelihoods)
+        
     preds_json = json.loads(json.dumps(preds))
 
     return preds_json

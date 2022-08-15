@@ -80,7 +80,7 @@ class PredictionModelForm(forms.ModelForm):
             "rows": 4,
         }
     ))
-    weight_file = forms.FileField(label="Model File", required=True, widget=forms.FileInput(attrs={"id": "weight_file"}))
+    weight_file = forms.FileField(label="Model File", required=False, widget=forms.FileInput(attrs={"id": "weight_file"}))
     test_dataset = forms.FileField(label="Test Dataset", required=False, widget=forms.FileInput(attrs={"id": "test_dataset"}))
     current_accuracy_precentage = forms.FloatField(label="Current Accuracy", required=False, widget=forms.NumberInput(attrs={"id": "current_accuracy_precentage"}))
 

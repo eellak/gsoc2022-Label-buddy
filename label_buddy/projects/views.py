@@ -183,28 +183,29 @@ def project_add_prediction_model_view(request):
         if form.is_valid():
             prediction_model = form.save(commit=False)
             
-            # Check if filed uploaded
-            if not prediction_model.weight_file:
-                messages.add_message(request, messages.ERROR, "Please upload a file.")
-                return redirect('/projects/add_prediction_model')
+            # # Check if filed uploaded
+            # if not prediction_model.weight_file:
+            #     messages.add_message(request, messages.ERROR, "Please upload a file.")
+            #     return redirect('/projects/add_prediction_model')
+            
+            if prediction_model.weight_file:
+                # Check if extension is accepted
+                file_extension = str(prediction_model.weight_file).split('.')[-1]
+                if file_extension not in ACCEPTED_MODEL_PREDICTION_UPLOADED_EXTENSIONS:
+                    messages.add_message(request, messages.ERROR, "%s is not an accepted extension." % file_extension)
+                    return redirect('/projects/add_prediction_model')
 
-            # Check if extension is accepted
-            file_extension = str(prediction_model.weight_file).split('.')[-1]
-            if file_extension not in ACCEPTED_MODEL_PREDICTION_UPLOADED_EXTENSIONS:
-                messages.add_message(request, messages.ERROR, "%s is not an accepted extension." % file_extension)
-                return redirect('/projects/add_prediction_model')
+                # Check if file is valid
+                data = request.FILES['weight_file']
+                path = default_storage.save(f"model_file_test/{request.FILES['weight_file'].name}", ContentFile(data.read()))
+                tmp_model_file = os.path.join(settings.MEDIA_ROOT, path)
 
-            # Check if file is valid
-            data = request.FILES['weight_file']
-            path = default_storage.save(f"model_file_test/{request.FILES['weight_file'].name}", ContentFile(data.read()))
-            tmp_model_file = os.path.join(settings.MEDIA_ROOT, path)
-
-            if not check_if_model_file_is_valid(tmp_model_file):
-                path = default_storage.delete(f"model_file_test/{request.FILES['weight_file'].name}")
-                messages.add_message(request, messages.ERROR, "File is not valid.")
-                return redirect('/projects/add_prediction_model')
-            else:
-                path = default_storage.delete(f"model_file_test/{request.FILES['weight_file'].name}")
+                if not check_if_model_file_is_valid(tmp_model_file):
+                    path = default_storage.delete(f"model_file_test/{request.FILES['weight_file'].name}")
+                    messages.add_message(request, messages.ERROR, "File is not valid.")
+                    return redirect('/projects/add_prediction_model')
+                else:
+                    path = default_storage.delete(f"model_file_test/{request.FILES['weight_file'].name}")
 
             prediction_model.save()
 
