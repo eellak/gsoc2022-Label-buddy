@@ -9,6 +9,9 @@ from tensorflow import keras
 import torch
 from musicnn.extractor import extractor
 import numpy as np
+import librosa
+import panns_inference
+from panns_inference import AudioTagging, SoundEventDetection, panns_labels
 
 from django.core.files import File
 from django.db.models import Q
@@ -645,6 +648,23 @@ def musicnn_prediction_formating(tags_with_max_likelihoods):
     return final_preds
 
 
+def panns_preds(framewise_output, frame_step=1000):
+
+  steps = framewise_output.shape[1] // frame_step
+  preds = []
+
+  curr_step = 0
+  for step in range(steps):
+    end_step = curr_step + frame_step
+    classwise_output = np.max(framewise_output[0, curr_step:end_step, :], axis=0) # (classes_num,)
+    idxes = np.argsort(classwise_output)[::-1]
+    pred = [curr_step/100, end_step/100, panns_labels[idxes[0]]]
+    curr_step = end_step
+    preds.append(pred)
+
+  return preds
+
+
 def get_ml_audio_prediction(audio_file_path, model_title, model_weight_file): 
 
     '''
@@ -662,6 +682,12 @@ def get_ml_audio_prediction(audio_file_path, model_title, model_weight_file):
         max_likelihoods_pes_timestep = np.argmax(taggram, axis=1)
         tags_with_max_likelihoods = [tags[i] for i in max_likelihoods_pes_timestep]
         preds = musicnn_prediction_formating(tags_with_max_likelihoods)
+
+    if (str(model_title) == 'PANNs'):
+        device = 'cpu' # 'cuda' | 'cpu'
+        sed = SoundEventDetection(checkpoint_path=None, device=device)
+        framewise_output = sed.inference('/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy' + audio_file_path)
+        preds = panns_preds(framewise_output)
         
     preds_json = json.loads(json.dumps(preds))
 
