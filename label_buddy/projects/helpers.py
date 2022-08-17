@@ -11,7 +11,7 @@ from musicnn.extractor import extractor
 import numpy as np
 import librosa
 import panns_inference
-from panns_inference import AudioTagging, SoundEventDetection, panns_labels
+from panns_inference import AudioTagging, SoundEventDetection, labels as panns_labels
 
 from django.core.files import File
 from django.db.models import Q
@@ -685,8 +685,11 @@ def get_ml_audio_prediction(audio_file_path, model_title, model_weight_file):
 
     if (str(model_title) == 'PANNs'):
         device = 'cpu' # 'cuda' | 'cpu'
+        audio_path = '/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy' + audio_file_path
+        (audio, _) = librosa.core.load(audio_path, sr=32000, mono=True)
+        audio = audio[None, :]  # (batch_size, segment_samples)
         sed = SoundEventDetection(checkpoint_path=None, device=device)
-        framewise_output = sed.inference('/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy' + audio_file_path)
+        framewise_output = sed.inference(audio)
         preds = panns_preds(framewise_output)
         
     preds_json = json.loads(json.dumps(preds))
