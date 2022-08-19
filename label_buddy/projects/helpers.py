@@ -648,7 +648,7 @@ def musicnn_prediction_formating(tags_with_max_likelihoods):
     return final_preds
 
 
-def panns_preds(framewise_output, frame_step=1000):
+def panns_preds(framewise_output, frame_step=300):
 
   steps = framewise_output.shape[1] // frame_step
   preds = []
@@ -658,7 +658,10 @@ def panns_preds(framewise_output, frame_step=1000):
     end_step = curr_step + frame_step
     classwise_output = np.max(framewise_output[0, curr_step:end_step, :], axis=0) # (classes_num,)
     idxes = np.argsort(classwise_output)[::-1]
-    pred = [curr_step/100, end_step/100, panns_labels[idxes[0]]]
+    label = panns_labels[idxes[0]]
+    if "," in label:
+      label = label.replace(",", "")
+    pred = [curr_step/100, end_step/100, label]
     curr_step = end_step
     preds.append(pred)
 
