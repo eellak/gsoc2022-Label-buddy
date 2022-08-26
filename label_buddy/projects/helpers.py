@@ -636,6 +636,11 @@ def get_table_id(current_page, objects_per_page, loop_counter):
 
 def musicnn_prediction_formating(tags_with_max_likelihoods):
 
+    '''
+    Function that returns the prediction by the musicnn model for every 3 deconds,
+    taking as input the tags_with_max_likelihoods.
+    '''
+
     final_preds = []
 
     starting_time = 0.0
@@ -650,6 +655,11 @@ def musicnn_prediction_formating(tags_with_max_likelihoods):
 
 def panns_preds(framewise_output, frame_step=300):
 
+  '''
+  Function that returns the prediction by the PANNs model for frame_step/100 seconds,
+  taking as input the framewise_output.
+  '''
+
   steps = framewise_output.shape[1] // frame_step
   preds = []
 
@@ -659,8 +669,12 @@ def panns_preds(framewise_output, frame_step=300):
     classwise_output = np.max(framewise_output[0, curr_step:end_step, :], axis=0) # (classes_num,)
     idxes = np.argsort(classwise_output)[::-1]
     label = panns_labels[idxes[0]]
+
+    # remove the commas from labels
     if "," in label:
       label = label.replace(",", "")
+    
+    # give prediction in [start, finish, label] format
     pred = [curr_step/100, end_step/100, label]
     curr_step = end_step
     preds.append(pred)
@@ -671,7 +685,7 @@ def panns_preds(framewise_output, frame_step=300):
 def get_ml_audio_prediction(audio_file_path, model_title, model_weight_file): 
 
     '''
-    Predict audio tags using machine learning model.
+    Predict audio tags using the machine learning model that has been chosen.
     '''
 
     # TODO: Add support for other models
@@ -701,6 +715,11 @@ def get_ml_audio_prediction(audio_file_path, model_title, model_weight_file):
 
 
 def check_if_model_file_is_valid(model_file):
+
+    '''
+    Function that checks the validity of a model file passing in the Tensorflow and 
+    Keras APIs.
+    '''
     
     # Keras/Tensorflow 
     try:
