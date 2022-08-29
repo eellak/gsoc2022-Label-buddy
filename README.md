@@ -94,3 +94,5 @@ Visit https://labelbuddy.io/ and sign with the following credentials:
   - **Password**: labelbuddy123
 
 in order to create projects, upload files and annotate them.
+
+Research & Models Documentation: https://docs.google.com/document/d/10Sd1WPcPpctzXY3lO9p6u4ubNzLg7SEUDKWJv09snqU/edit?usp=sharing
