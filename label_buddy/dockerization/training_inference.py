@@ -1,10 +1,10 @@
 from utils import *
 
-# extract_train_zip()
-# extract_val_zip()
+extract_train_zip()
+extract_val_zip()
 
 print("Getting labels...")
-# get_labels()
+get_labels()
 
 print("Getting training examples...")
 train_examples = get_np_arrays()

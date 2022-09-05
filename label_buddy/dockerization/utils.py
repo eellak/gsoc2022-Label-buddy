@@ -23,16 +23,17 @@ def extract_train_zip():
   Extract the .zip files into the 'train data' folder.
   """
 
-  for i in range(0, 4):
-    zip_name = "./train-zipped/d" + str(i + 1) + ".zip"
-    with ZipFile(zip_name, 'r') as zip:
-      zip.extractall('yoho_train_data')
-      print("Extracted all sound files into the folder {}".format(i + 1))
-
-  zip_name = "./train-zipped/BBC-Train.zip"
+  # for i in range(0, 4):
+  # zip_name = "./train-zipped/d" + str(i + 1) + ".zip"
+  zip_name = "./train-zipped/d1.zip"
   with ZipFile(zip_name, 'r') as zip:
     zip.extractall('yoho_train_data')
-    print("Extracted all sound files into the folder")
+    print("Extracted all sound files into the folder {}")
+
+  # zip_name = "./train-zipped/BBC-Train.zip"
+  # with ZipFile(zip_name, 'r') as zip:
+  #   zip.extractall('yoho_train_data')
+  #   print("Extracted all sound files into the folder")
 
 
 def extract_val_zip():
@@ -798,5 +799,3 @@ def define_YOHO():
         outputs=[pred])
   
   return model
-
-
