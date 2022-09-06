@@ -21,6 +21,7 @@ urlpatterns = [
     path('api/v1/projects/<int:pk>/', views.ProjectDetail.as_view(), name="specific_project"),
     path('api/v1/projects/<int:pk>/tasks', views.ProjectTasks.as_view(), name="project-list-tasks"),
     path('api/v1/root', views.api_root, name="api_root"),
+    path('api/v1/projects/get_dataset', views.get_dataset_view.as_view(), name="get_dataset"),
     url(r"^api/v1/projects/(?P<pk>\d+)/tasks/(?P<task_pk>\d+)/annotation/predict$", views.AnnotationPredictions.as_view(), name="annotation_predictions"),
 ]
 

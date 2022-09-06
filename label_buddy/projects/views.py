@@ -14,7 +14,7 @@ from django.utils import timezone
 from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, FileResponse
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -1053,3 +1053,27 @@ class AnnotationPredictions(APIView):
         }
 
         return Response(data, status=status.HTTP_200_OK)
+
+
+class get_dataset_view(APIView):
+
+    """
+    API endpoint to get training data for a model.
+    Only post is implemented here.
+    """
+
+    def post(self, request):
+        
+        if request.method == 'POST':
+
+            
+            return FileResponse( 
+                open('/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy/media/datasets/train-zipped/d1.zip', 'rb'),
+                as_attachment=True, filename='d1.zip'
+            )
+
+            # if request.POST['data'] == "validation":
+            #     return FileResponse( 
+            #         open('/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy/media/datasets/val-zipped/BCC-Val.zip', 'rb'),
+            #         as_attachment=True, filename='BCC-Val.zip'
+            #     )
