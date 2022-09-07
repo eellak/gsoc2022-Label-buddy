@@ -2,8 +2,10 @@
 import os
 from joblib import load
 from flask import Flask, request
-from utils import mk_preds_fa, define_YOHO
+from utils import mk_preds_vector, define_YOHO
 import requests
+import glob
+
 
 # Set environnment variables
 # root_dir = "Models"
@@ -21,13 +23,29 @@ app = Flask(__name__)
 def result():
 
     if request.method == 'POST':
-        print(request.files)
-        audio_file = request.files['audio_data'].read()
-        print(audio_file)
 
+        # print(request.files)
+        audio_file_bytes = request.files['audio_data'].read()
+
+        path_to_audio_file = './audios/audio_file.wav'
+
+        with open(path_to_audio_file, mode='bx') as f:
+            f.write(audio_file_bytes)
+
+        f.close()
+
+        print("Defining YOHO...")
         model = define_YOHO()
+        print('Loading weights...')
         model.load_weights('./Models/YOHO-1/model-best.h5')
-        prediction_yoho = mk_preds_fa(model, audio_file)
+        print('Making predictions...')
+        prediction_yoho = mk_preds_vector(path_to_audio_file, model)
+        print('Predictions made.')
+        print(prediction_yoho)
+
+        files = glob.glob('./audios/*')
+        for f in files:
+            os.remove(f)
 
         return {'prediction YOHO': prediction_yoho}
 
@@ -49,7 +67,7 @@ def get_trainin_data():
     r = requests.post(lb_dtst_url, data=data)
 
     #/home/baku/Desktop/DockerTesting/train-zipped/d1.zip
-    with open("./train-zipped2/D1.zip", "wb") as fd:
+    with open("./train-zipped/d1.zip", "wb") as fd:
         for chunk in r.iter_content(chunk_size=512):
             fd.write(chunk)
 

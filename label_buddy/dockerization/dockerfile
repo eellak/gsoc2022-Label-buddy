@@ -12,6 +12,9 @@ COPY requirements.txt ./requirements.txt
 
 RUN mkdir -p ./trained-zipped
 RUN mkdir -p ./val-zipped
+RUN mkdir -p ./Models
+RUN mkdir -p ./Models/YOHO-1
+RUN mkdir -p ./audios
 
 RUN pip3 install -r requirements.txt
 

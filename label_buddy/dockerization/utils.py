@@ -559,59 +559,94 @@ def get_log_melspectrogram(audio, sr = 16000, hop_length = 160, win_length = 400
     return librosa.core.power_to_db(bands, amin=1e-7)
 
 
-def mk_preds_fa(model, audio_path, hop_size = 6.0, discard = 1.0, win_length = 8.0, sampling_rate = 22050):
+def mk_preds_vector(audio_path, model, hop_size=6.0, discard=1.0,
+    win_length=8.0, sampling_rate=22050):
 
-  """
-  Make predictions for full audio.
-  """
+    '''
+    This function takes an audio file and returns the predictions vector.
+    '''
 
-  # load the audio file with one channel
-  in_signal, in_sr = librosa.load(audio_path, mono=True)
+    # load the audio file with one channel
+    in_signal, in_sr = librosa.load(audio_path, mono=True)
 
-  # Resample the audio file.
-  in_signal_22k = librosa.resample(in_signal, orig_sr=in_sr, target_sr=sampling_rate)
-  in_signal = np.copy(in_signal_22k)
+    # Resample the audio file.
+    in_signal_22k = librosa.resample(in_signal, orig_sr=in_sr,
+    target_sr=sampling_rate)
+    in_signal = np.copy(in_signal_22k)
 
-  audio_clip_length_samples = in_signal.shape[0]
-  print('audio_clip_length_samples is {}'.format(audio_clip_length_samples))
+    # calculate constants
+    audio_clip_length_samples = in_signal.shape[0]  # length of the audio clip in samples
+    hop_size_samples = int(hop_size * sampling_rate)  # hop size in samples
+    win_length_samples = int(win_length * sampling_rate)  # window length in samples
+    n_preds = int(math.ceil((audio_clip_length_samples - win_length_samples) / hop_size_samples)) + 1  # number of predictions
 
-  #hop_size_samples = int(hop_size * sampling_rate)
-  hop_size_samples = 220 * 602 - 1
+    # padding
+    in_signal_pad = np.zeros(((n_preds - 1) * hop_size_samples) + win_length_samples)  # padding the input signal
+    in_signal_pad[0:audio_clip_length_samples] = in_signal
 
-  #win_length_samples = int(win_length * sampling_rate)
-  win_length_samples = 220 * 802 - 1
+    # initialization
+    preds = np.zeros((n_preds, 26, 2))
+    mss_in = np.zeros((n_preds, 801, 64))
+    events = []
 
-  n_preds = int(math.ceil((audio_clip_length_samples - win_length_samples) / hop_size_samples)) + 1
+    for i in range(n_preds):
+        seg = in_signal_pad[i * hop_size_samples:(i * hop_size_samples) + win_length_samples]
+        seg_normalized = librosa.util.normalize(seg)
+        seg_resampled = librosa.resample(seg_normalized, orig_sr=22050, target_sr=16000)
 
-  in_signal_pad = np.zeros((n_preds * hop_size_samples + 200 * 220))
+        mss = get_log_melspectrogram(seg_resampled)  # get the log-scaled Mel bands
+        M = mss.T  # transpose the matrix
+        mss_in[i, :, :] = M
 
-  in_signal_pad[0:audio_clip_length_samples] = in_signal
+    # get the predictions
+    preds = model.predict(mss_in)
 
-  preds = np.zeros((n_preds, 802, 2))
-  mss_in = np.zeros((n_preds, 802, 80))
+    # initialize events
+    events = []
 
-  for i in range(n_preds):
-    seg = in_signal_pad[i * hop_size_samples:(i * hop_size_samples) + win_length_samples]
-    #print('seg.shape is {}'.format(seg.shape))
-    seg = librosa.util.normalize(seg)
+    for j in range(n_preds):
 
-    mss = get_log_melspectrogram(seg)
-    M = mss.T
-    mss_in[i, :, :] = M
+        p = preds[j, :, :]
+        events_curr = []
+        win_width = win_length / 26
 
-  preds = (model.predict(mss_in) >= (0.5, 0.5)).astype(np.float)
+        for i in range(len(p)):
+            if p[i][0] >= 0.5:
+                start = win_width * i + win_width * p[i][1]
+                end = p[i][2] * win_width + start
+                events_curr.append([start, end, "speech"])
 
-  preds_mid = np.copy(preds[1:-1, 100:702, :])
+            if p[i][3] >= 0.5:
+                start = win_width * i + win_width * p[i][4]
+                end = p[i][5] * win_width + start
+                events_curr.append([start, end, "music"])
 
-  preds_mid_2 = preds_mid.reshape(-1, 2)
+        se = events_curr
+        if j == 0:
+            start = 0.0
+            end = start + win_length
+            if preds.shape[0] > 1:
+                end -= discard
 
-  oa_preds = preds[0, 0:702, :] # oa stands for overall predictions
+        elif j == n_preds - 1:
+            start = j * hop_size + discard
+            end = start - discard + win_length
 
-  oa_preds = np.concatenate((oa_preds, preds_mid_2), axis = 0)
+        else:
+            start = j * hop_size + discard
+            end = start + win_length - discard
 
-  oa_preds = np.concatenate((oa_preds, preds[-1, 100:, :]), axis = 0)
+        for k in range(len(se)):
+            se[k][0] = max(start, se[k][0] + j * hop_size)
+            se[k][1] = min(end, se[k][1] + j * hop_size)
 
-  return oa_preds
+        for see in se:
+            events.append(see)
+
+    # smoothing with filtering
+    smooth_events = smoothe_events(events)
+
+    return smooth_events
 
 
 def my_loss_fn(y_true, y_pred):
@@ -799,3 +834,5 @@ def define_YOHO():
         outputs=[pred])
   
   return model
+
+

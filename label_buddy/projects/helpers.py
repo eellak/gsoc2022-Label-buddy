@@ -12,6 +12,7 @@ import numpy as np
 import librosa
 import panns_inference
 from panns_inference import AudioTagging, SoundEventDetection, labels as panns_labels
+import requests
 
 from django.core.files import File
 from django.db.models import Q
@@ -743,3 +744,13 @@ def check_if_model_file_is_valid(model_file):
         print(e)
 
     return False
+
+
+def send_audio_to_container_for_preds():
+    #print('attempting to send audio')
+    url = 'http://192.168.1.9:5000/predict'
+    with open('/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy/media/audio/test-music-speech_1NidHbD.wav', 'rb') as file:
+        files = {'audio_data': file}
+        req = requests.post(url, files=files)
+        print(req.status_code)
+        print(req.text)
