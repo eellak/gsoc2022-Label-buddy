@@ -688,22 +688,25 @@ def get_ml_audio_prediction(audio_file_path, model_title, model_weight_file):
     '''
     Predict audio tags using the machine learning model that has been chosen.
     '''
+    audio_path = '/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy' + audio_file_path
 
-    # TODO: Add support for other models
     if (str(model_title) == 'YOHO'):
-        model = define_YOHO()
-        model.load_weights("/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy/media/" + str(model_weight_file))
-        preds = mk_preds_vector('/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy' + audio_file_path, model)
+
+        #docker
+        preds = send_audio_to_container_for_preds('/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy' + audio_file_path)
+
+        # model = define_YOHO()
+        # model.load_weights("/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy/media/" + str(model_weight_file))
+        # preds = mk_preds_vector(audio_path, model)
 
     if (str(model_title) == 'musicnn'):
-        taggram, tags, features = extractor('/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy' + audio_file_path, input_length=3, model='MTT_musicnn', extract_features=True)
+        taggram, tags, features = extractor(audio_path, input_length=3, model='MTT_musicnn', extract_features=True)
         max_likelihoods_pes_timestep = np.argmax(taggram, axis=1)
         tags_with_max_likelihoods = [tags[i] for i in max_likelihoods_pes_timestep]
         preds = musicnn_prediction_formating(tags_with_max_likelihoods)
 
     if (str(model_title) == 'PANNs'):
         device = 'cpu' # 'cuda' | 'cpu'
-        audio_path = '/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy' + audio_file_path
         (audio, _) = librosa.core.load(audio_path, sr=32000, mono=True)
         audio = audio[None, :]  # (batch_size, segment_samples)
         sed = SoundEventDetection(checkpoint_path=None, device=device)
@@ -746,11 +749,11 @@ def check_if_model_file_is_valid(model_file):
     return False
 
 
-def send_audio_to_container_for_preds():
-    #print('attempting to send audio')
-    url = 'http://192.168.1.9:5000/predict'
-    with open('/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy/media/audio/test-music-speech_1NidHbD.wav', 'rb') as file:
+def send_audio_to_container_for_preds(audio_file_path):
+
+    url = 'http://172.17.0.2:5000/predict'
+    with open(audio_file_path, 'rb') as file:
         files = {'audio_data': file}
         req = requests.post(url, files=files)
-        print(req.status_code)
-        print(req.text)
+        
+        return req.json()
