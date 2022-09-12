@@ -12,4 +12,5 @@ extract_folder/
 label_buddy/.coverage
 label_buddy/db.sqlite3
 label_buddy/label_buddy/local_settings.py
-label_buddy/media/datasets
+label_buddy/media/datasets/train-zipped/*
+label_buddy/media/datasets/val-zipped/*
