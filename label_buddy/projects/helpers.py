@@ -13,6 +13,7 @@ import librosa
 import panns_inference
 from panns_inference import AudioTagging, SoundEventDetection, labels as panns_labels
 import requests
+import docker
 
 from django.core.files import File
 from django.db.models import Q
@@ -751,9 +752,18 @@ def check_if_model_file_is_valid(model_file):
 
 def send_audio_to_container_for_preds(audio_file_path):
 
-    url = 'http://172.17.0.2:5000/predict'
+    url = 'http://127.0.0.1:5000/predict'
     with open(audio_file_path, 'rb') as file:
         files = {'audio_data': file}
         req = requests.post(url, files=files)
         
         return req.json()
+
+
+def pull_docker_image(dockerhub_repo):
+
+    client = docker.from_env()
+    image = client.images.pull(dockerhub_repo)
+    container = client.containers.run(image, detach=True, network='host')
+
+    return container

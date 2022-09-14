@@ -62,3 +62,4 @@ tensorflow==2.9.1
 musicnn==0.1.0
 panns-inference==0.0.7
 flask
+docker
