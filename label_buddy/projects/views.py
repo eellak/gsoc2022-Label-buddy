@@ -147,9 +147,7 @@ def project_create_view(request):
 
                 # if there is a docker image on hub pull to initiate
                 if prediction_model_selected.image_repo:
-                    print(prediction_model_selected.image_repo)
                     model_container = pull_docker_image(prediction_model_selected.image_repo)
-                    print(model_container)
             else:
                 new_labels = form.cleaned_data['new_labels']
             add_labels_to_project(project, new_labels)

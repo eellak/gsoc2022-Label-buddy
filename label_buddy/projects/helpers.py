@@ -760,17 +760,15 @@ def send_audio_to_container_for_preds(audio_file_path):
         files = {'audio_data': file}
         req = requests.post(url, files=files)
     
-    print(req.json()['prediction YOHO'])
     return req.json()['prediction YOHO']
 
 
 def pull_docker_image(dockerhub_repo):
 
-    # client = docker.from_env()
-    # image = client.images.pull(dockerhub_repo)
-    # container = client.containers.run(image, detach=True, network='host')
-    os.system("sudo docker run -d --network='host' docker-test")
-    print('Docker container started.')
-    return "doooocker"
-
-    # return container
+    # os.system("sudo docker run -d --network='host' docker-test")
+    client = docker.from_env()
+    print("Client ready.")
+    image = client.images.pull(dockerhub_repo)
+    print("Image pulled.")
+    container = client.containers.run(image, detach=True, network='host')
+    print(f'Docker container: {container}, started.')
