@@ -689,16 +689,18 @@ def get_ml_audio_prediction(audio_file_path, model_title, model_weight_file):
     '''
     Predict audio tags using the machine learning model that has been chosen.
     '''
+
     audio_path = '/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy' + audio_file_path
 
-    if (str(model_title) == 'YOHO'):
-
+    if (str(model_title) == 'YOHO_container'):
         #docker
         preds = send_audio_to_container_for_preds('/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy' + audio_file_path)
 
-        # model = define_YOHO()
-        # model.load_weights("/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy/media/" + str(model_weight_file))
-        # preds = mk_preds_vector(audio_path, model)
+    if (str(model_title) == 'YOHO'):
+
+        model = define_YOHO()
+        model.load_weights("/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy/media/" + str(model_weight_file))
+        preds = mk_preds_vector(audio_path, model)
 
     if (str(model_title) == 'musicnn'):
         taggram, tags, features = extractor(audio_path, input_length=3, model='MTT_musicnn', extract_features=True)
@@ -752,18 +754,23 @@ def check_if_model_file_is_valid(model_file):
 
 def send_audio_to_container_for_preds(audio_file_path):
 
+
     url = 'http://127.0.0.1:5000/predict'
     with open(audio_file_path, 'rb') as file:
         files = {'audio_data': file}
         req = requests.post(url, files=files)
-        
-        return req.json()
+    
+    print(req.json()['prediction YOHO'])
+    return req.json()['prediction YOHO']
 
 
 def pull_docker_image(dockerhub_repo):
 
-    client = docker.from_env()
-    image = client.images.pull(dockerhub_repo)
-    container = client.containers.run(image, detach=True, network='host')
+    # client = docker.from_env()
+    # image = client.images.pull(dockerhub_repo)
+    # container = client.containers.run(image, detach=True, network='host')
+    os.system("sudo docker run -d --network='host' docker-test")
+    print('Docker container started.')
+    return "doooocker"
 
-    return container
+    # return container

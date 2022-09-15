@@ -70,6 +70,7 @@ from .helpers import (
     get_audiowaveform_data,
     get_ml_audio_prediction,
     check_if_model_file_is_valid,
+    pull_docker_image,
 )
 
 # Global variables
@@ -143,6 +144,12 @@ def project_create_view(request):
             # If prediction model is selected, combine the new labels
             if (prediction_model_selected):
                 new_labels = form.cleaned_data['new_labels'] + ", " + prediction_model_selected.output_labels
+
+                # if there is a docker image on hub pull to initiate
+                if prediction_model_selected.image_repo:
+                    print(prediction_model_selected.image_repo)
+                    model_container = pull_docker_image(prediction_model_selected.image_repo)
+                    print(model_container)
             else:
                 new_labels = form.cleaned_data['new_labels']
             add_labels_to_project(project, new_labels)
