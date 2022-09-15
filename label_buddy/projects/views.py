@@ -74,7 +74,7 @@ from .helpers import (
 )
 
 # Global variables
-ACCEPTED_UPLOADED_EXTENSIONS = ['.wav', '.mp3', '.mp4', '.zip']
+ACCEPTED_UPLOADED_EXTENSIONS = ['.wav', '.mp3', '.mp4', '.zip', '.rar']
 ACCEPTED_MODEL_PREDICTION_UPLOADED_EXTENSIONS = ['h5']
 
 
@@ -489,6 +489,7 @@ def project_page_view(request, pk):
 
             # If file uploaded is a zip add new tasks
             if file_extension in [".zip", ".rar"]:
+                
                 # Unzip file and add as many tasks as the files in the zip/rar file
                 skipped_files = add_tasks_from_compressed_file(new_task.file, project, file_extension)
 

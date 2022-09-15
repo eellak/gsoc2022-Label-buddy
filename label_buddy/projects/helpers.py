@@ -10,8 +10,7 @@ import torch
 from musicnn.extractor import extractor
 import numpy as np
 import librosa
-import panns_inference
-from panns_inference import AudioTagging, SoundEventDetection, labels as panns_labels
+from panns_inference import SoundEventDetection, labels as panns_labels
 import requests
 import docker
 
@@ -501,6 +500,8 @@ def add_tasks_from_compressed_file(compressed_file, project, file_extension):
     """
     Unzip uploaded file and add contained files to the project.
     """
+    
+    temp_rar_compoments_folder = '/label_buddy/media/rarcomps'
 
     if file_extension == ".zip":
         archive = ZipFile(compressed_file, 'r')
@@ -518,13 +519,9 @@ def add_tasks_from_compressed_file(compressed_file, project, file_extension):
     project_annotators_count = project.annotators.count()
     users_already_assigned_id = []
     for filename in files_names:
-        if file_extension == ".zip":
-            # Zip
-            new_file = archive.open(filename, 'r')
-        else:
-            # Rar
-            pass  # To be fixed
 
+        new_file = archive.open(filename, 'r')
+            
         # For every file that has an extension in [.wav, .mp3, .mp4] create a task
         if filename[-4:] in ACCEPTED_FORMATS:
             # Create task
@@ -556,6 +553,7 @@ def add_tasks_from_compressed_file(compressed_file, project, file_extension):
                     new_task.assigned_to.add(project.annotators.all()[0])
         else:
             skipped_files += 1
+
     return skipped_files
 
 
