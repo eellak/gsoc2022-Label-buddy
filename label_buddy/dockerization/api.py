@@ -1,7 +1,6 @@
 # Imports
 import os
-from joblib import load
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from utils import mk_preds_vector, define_YOHO
 import requests
 import glob
@@ -24,6 +23,8 @@ def result():
 
     if request.method == 'POST':
 
+        print('Processing audio...')
+
         # print(request.files)
         audio_file_bytes = request.files['audio_data'].read()
 
@@ -37,7 +38,15 @@ def result():
         print("Defining YOHO...")
         model = define_YOHO()
         print('Loading weights...')
-        model.load_weights('./Models/YOHO-1/model-best.h5')
+
+        path_of_trained_weight = './Models/YOHO-1/model-best.h5'
+        path_of_pretrained_weight = './Models/YOHO-1/YOHO-music-speech.h5'
+
+        # if os.path.isfile(path_of_trained_weight):
+        #     model.load_weights(path_of_trained_weight)
+        # else:
+        model.load_weights(path_of_pretrained_weight)
+
         print('Making predictions...')
         prediction_yoho = mk_preds_vector(path_to_audio_file, model)
         print('Predictions made.')
@@ -47,31 +56,44 @@ def result():
         for f in files:
             os.remove(f)
 
+        print(prediction_yoho)
+
         return {'prediction YOHO': prediction_yoho}
 
 @app.route('/train', methods=['GET', 'POST'])
 def train():
     print("Starting trainig...")
     os.system('python3 training_inference.py') 
+    print('Training done.')
+
+    resp = jsonify(success=True)
+    return resp
 
 
 @app.route('/get_training_data', methods=['GET', 'POST'])
 def get_trainin_data():
     # if key doesn't exist, returns None
     # dataset = request.args.get('dataset')
-
+    
+    print("Getting trainig data...")
     data = {"data": "training"}
 
     # if dataset is not None:
     lb_dtst_url = "http://127.0.0.1:8000/api/v1/projects/get_dataset"
     r = requests.post(lb_dtst_url, data=data)
 
+    print(f"Request: {r}")
+
     #/home/baku/Desktop/DockerTesting/train-zipped/d1.zip
-    with open("./train-zipped/d1.zip", "wb") as fd:
+    with open("train-zipped/d1.zip", "wb") as fd:
         for chunk in r.iter_content(chunk_size=512):
             fd.write(chunk)
 
-    return True
+    print('Training data saved.')
+
+    resp = jsonify(success=True)
+    return resp
+
 
 
 @app.route('/get_validation_data', methods=['GET', 'POST'])
@@ -79,16 +101,25 @@ def get_validation_data():
     # if key doesn't exist, returns None
     # dataset = request.args.get('dataset')
 
+    print("Getting validation data...")
+
     data = {"data": "validation"}
 
     # if dataset is not None:
     lb_dtst_url = "http://127.0.0.1:8000/api/v1/projects/get_dataset"
     r = requests.post(lb_dtst_url, data=data)
 
+    print(f"Request: {r}")
+
     with open("val-zipped/BBC-Val.zip", "wb") as fd:
         for chunk in r.iter_content(chunk_size=512):
             fd.write(chunk)
     
+    print('Validation data saved.')
+
+    resp = jsonify(success=True)
+    return resp
+
 
 @app.route('/')
 def index():
@@ -96,4 +127,5 @@ def index():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host='0.0.0.0')
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=True, host='0.0.0.0', port=port)

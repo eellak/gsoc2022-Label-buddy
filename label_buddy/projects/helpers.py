@@ -763,10 +763,9 @@ def send_audio_to_container_for_preds(audio_file_path):
 
 def pull_docker_image(dockerhub_repo):
 
-    # os.system("sudo docker run -d --network='host' docker-test")
     client = docker.from_env()
     print("Client ready.")
     image = client.images.pull(dockerhub_repo)
     print("Image pulled.")
-    container = client.containers.run(image, detach=True, network='host')
-    print(f'Docker container: {container}, started.')
+    container = client.containers.run(image, detach=True, ports= {'5000/tcp': ('127.0.0.1', 5000)})
+    print(f'Docker {container} started.')

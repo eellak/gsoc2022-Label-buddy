@@ -50,9 +50,12 @@ def extract_val_zip():
 
 def smoothe_events(events):
 
-  """
-  Event smoothing.
-  """
+  '''
+    Smoothing is performed over the output events to eliminate the occurrence
+    of spurious audio events. Filtering - if the duration of the audio event
+    is too short or if the silence between consecutive events of the same
+    acoustic class is too short, we remove the occurrence.
+  '''
 
   music_events = []
   speech_events = []
@@ -241,19 +244,6 @@ def to_seg_by_class(events, n_frames = 801):
       labels[t1:t2, 1] = 1
   
   return labels 
-
-
-def get_log_melspectrogram(audio, sr = 16000, hop_length = 160, win_length = 400, n_fft = 512, n_mels = 64, fmin = 125, fmax = 7500):
-    
-    """
-    Return the log-scaled Mel bands of an audio signal.
-    """
-
-    bands = librosa.feature.melspectrogram(
-        y=audio, sr=sr, hop_length=hop_length, win_length = win_length, n_fft=n_fft, n_mels=n_mels, fmin=fmin, fmax=fmax, dtype=np.float32)
-    
-    return librosa.core.power_to_db(bands, amin=1e-7)
-
 
 def get_labels():
 
@@ -547,6 +537,7 @@ def preds_to_se(p, audio_clip_length = 8.0):
 def frames_to_time(f, sr = 22050.0, hop_size = 220):
   return f * hop_size / sr
 
+
 def get_log_melspectrogram(audio, sr = 16000, hop_length = 160, win_length = 400, n_fft = 512, n_mels = 64, fmin = 125, fmax = 7500):
     
     """
@@ -597,6 +588,8 @@ def mk_preds_vector(audio_path, model, hop_size=6.0, discard=1.0,
         mss = get_log_melspectrogram(seg_resampled)  # get the log-scaled Mel bands
         M = mss.T  # transpose the matrix
         mss_in[i, :, :] = M
+
+    print(mss_in.shape)
 
     # get the predictions
     preds = model.predict(mss_in)
@@ -783,7 +776,7 @@ class MyCustomCallback_3(tf.keras.callbacks.Callback):
 def define_YOHO():
 
   """
-  Manually define YOHO
+  Manually define YOHO.
   """
 
   LAYER_DEFS = [

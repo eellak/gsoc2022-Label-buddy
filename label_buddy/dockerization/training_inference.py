@@ -1,6 +1,8 @@
 from utils import *
 
+print("Extracting training zip...")
 extract_train_zip()
+print("Extracting validation zip...")
 extract_val_zip()
 
 print("Getting labels...")
