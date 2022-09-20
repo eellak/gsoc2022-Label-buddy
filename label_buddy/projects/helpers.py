@@ -768,4 +768,5 @@ def pull_docker_image(dockerhub_repo):
     image = client.images.pull(dockerhub_repo)
     print("Image pulled.")
     container = client.containers.run(image, detach=True, ports= {'5000/tcp': ('127.0.0.1', 5000)})
+
     print(f'Docker {container} started.')

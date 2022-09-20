@@ -4,6 +4,7 @@ from flask import Flask, request, jsonify
 from utils import mk_preds_vector, define_YOHO
 import requests
 import glob
+import json
 
 
 # Set environnment variables
@@ -42,10 +43,10 @@ def result():
         path_of_trained_weight = './Models/YOHO-1/model-best.h5'
         path_of_pretrained_weight = './Models/YOHO-1/YOHO-music-speech.h5'
 
-        # if os.path.isfile(path_of_trained_weight):
-        #     model.load_weights(path_of_trained_weight)
-        # else:
-        model.load_weights(path_of_pretrained_weight)
+        if os.path.isfile(path_of_trained_weight):
+            model.load_weights(path_of_trained_weight)
+        else:
+            model.load_weights(path_of_pretrained_weight)
 
         print('Making predictions...')
         prediction_yoho = mk_preds_vector(path_to_audio_file, model)
@@ -98,8 +99,6 @@ def get_trainin_data():
 
 @app.route('/get_validation_data', methods=['GET', 'POST'])
 def get_validation_data():
-    # if key doesn't exist, returns None
-    # dataset = request.args.get('dataset')
 
     print("Getting validation data...")
 
@@ -121,9 +120,28 @@ def get_validation_data():
     return resp
 
 
+@app.route('/get_approved_data_annotations?$project_id=<project_id>$format=<format>$', methods=['GET', 'POST'])
+def get_approved_data_annotations(project_id, format):
+
+    data = {
+        "format": format,
+        "exportApproved": True
+    }
+
+    url = "http://127.0.0.1:8000/api/v1/projects/" + project_id + "/tasks/export"
+    response = requests.post(url, data=data)\
+
+    with open(f'annotations/data_{project_id}.json', 'w', encoding='utf-8') as f:
+        json.dump(response.json(), f, ensure_ascii=False, indent=4)
+
+    flask_resp = jsonify(success=True)
+    return flask_resp
+
+
 @app.route('/')
 def index():
-    return 'Web App with Python Flask!'
+    ip_addr = request.remote_addr
+    return '<h1> Your IP address is:' + ip_addr
 
 
 if __name__ == "__main__":
