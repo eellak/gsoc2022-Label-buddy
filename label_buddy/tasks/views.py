@@ -17,7 +17,13 @@ from .helpers import (
     get_user,
     get_annotation,
     export_data,
+    format_exported_json
 )
+
+from zipfile import ZipFile
+import io
+import numpy as np
+import os
 # Create your views here
 
 
@@ -162,7 +168,7 @@ class ExportData(APIView):
             return Response({"message": "You are not involved to this project!"}, status=status.HTTP_400_BAD_REQUEST)
 
         # If all validations pass, return exported json
-        exported_json, skipped_annotations = export_data(project, request.data['exportApproved'])
+        exported_json, skipped_annotations, audios = export_data(project, request.data['exportApproved'])
 
         # Create filename
         if request.data['exportApproved']:
@@ -182,3 +188,51 @@ class ExportData(APIView):
             "message": message
         }
         return Response(data, status=status.HTTP_200_OK)
+
+
+class ExportDataToContainer(APIView):
+
+    """
+    API endpoint for exporting data for a project to a container for the training/validation process.
+    Only post is implemented here.
+    """
+
+    def get_project(self, pk):
+        try:
+            return Project.objects.get(pk=pk)
+        except PermissionDenied:
+            return Response({"message": "No permissions"}, status=status.HTTP_401_UNAUTHORIZED)
+        except Project.DoesNotExist:
+            return Response({"message": "Project does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request, pk):
+
+        # Check if project exists
+        project = self.get_project(pk)
+        if isinstance(project, HttpResponse):
+            return Response(project.data, status=project.status_code)
+
+        # If all validations pass, return exported json
+        exported_json, skipped_annotations, audios = export_data(project, True)
+
+        final_annotations = format_exported_json(exported_json)
+        final_annotations_path = f"./media/data/temp_project{pk}_annotations.npy"
+        np.save(final_annotations_path, final_annotations)
+
+        # create zip file with audios and annotations
+        buffer = io.BytesIO()
+        with ZipFile(buffer, 'w') as zipObj:
+            for audio in audios:
+                zipObj.write("." + audio)
+
+            zipObj.write(final_annotations_path)
+
+        # remove temporary file
+        if os.path.isfile(final_annotations_path):
+            os.remove(final_annotations_path)
+
+        file_response = HttpResponse(buffer.getvalue())
+        file_response['Content-Type'] = 'application/x-zip-compressed'
+        file_response['Content-Disposition'] = 'attachment; filename=audios.zip'
+
+        return file_response

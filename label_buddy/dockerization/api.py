@@ -5,6 +5,7 @@ from utils import mk_preds_vector, define_YOHO
 import requests
 import glob
 import json
+import numpy as np
 
 
 # Set environnment variables
@@ -120,19 +121,17 @@ def get_validation_data():
     return resp
 
 
-@app.route('/get_approved_data_annotations?$project_id=<project_id>$format=<format>$', methods=['GET', 'POST'])
-def get_approved_data_annotations(project_id, format):
+@app.route('/get_approved_data_annotations', methods=['GET', 'POST'])
+def get_approved_data_annotations():
 
-    data = {
-        "format": format,
-        "exportApproved": True
-    }
+    project_id = request.args.get('project_id')
 
-    url = "http://127.0.0.1:8000/api/v1/projects/" + project_id + "/tasks/export"
-    response = requests.post(url, data=data)\
+    url = "http://127.0.0.1:8000/api/v1/projects/" + project_id + "/tasks/export_to_container"
+    response = requests.post(url)
 
-    with open(f'annotations/data_{project_id}.json', 'w', encoding='utf-8') as f:
-        json.dump(response.json(), f, ensure_ascii=False, indent=4)
+    with open(f"data/data_project{project_id}.zip", "wb") as fd:
+        for chunk in response.iter_content(chunk_size=512):
+            fd.write(chunk)
 
     flask_resp = jsonify(success=True)
     return flask_resp
