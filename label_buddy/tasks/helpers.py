@@ -143,8 +143,8 @@ def export_data(project, export_only_approved):
 def format_exported_json(exported_json):
 
     final_annotations = {}
-    audio_counter = 0
     for audio_id in exported_json:
+        audio_name = audio_id['data']['audio'].split('audio/')[1].split('.')[0]
         formated_annotations = []
         annotation_results = audio_id['annotations'][0]['result']
         for annotation_result in annotation_results:
@@ -154,6 +154,6 @@ def format_exported_json(exported_json):
             formated_annotation = [start, end, label]
             formated_annotations.append(formated_annotation)
         
-        final_annotations[audio_counter] = formated_annotations
+        final_annotations[audio_name] = formated_annotations
 
     return final_annotations

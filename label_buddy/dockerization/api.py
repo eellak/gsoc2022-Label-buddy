@@ -6,6 +6,9 @@ import requests
 import glob
 import json
 import numpy as np
+from utils import get_log_melspectrogram
+import pickle
+import zipfile
 
 
 # Set environnment variables
@@ -135,6 +138,39 @@ def get_approved_data_annotations():
 
     flask_resp = jsonify(success=True)
     return flask_resp
+
+
+@app.route('/enrich_dataset', methods=['GET', 'POST'])
+def enrich_dataset():
+
+    zip_data_paths = glob.glob("./data/*")
+    for zip_file_path in zip_data_paths:
+        with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+            for file in zip_ref.namelist():
+                if file.endswith(('.mp3', '.wav')):
+                    zip_ref.extract(file, "./audios/")
+                if file.endswith(('.npy')):
+                    zip_ref.extract(file, "./labels/")
+
+    audio_files = glob.glob("./audios/*")
+    for audio_file_path in audio_files:
+        audio_name = audio_file_path.split("audio/")[1].split(".")[0]
+        log_melspectrogram = get_log_melspectrogram(audio_file_path)
+        np.save(f"./log_mel_spectogram/{audio_name}.npy", log_melspectrogram)
+
+    label_files = glob.glob("./labels/*")
+    for label_file_path in label_files:
+        annotations = np.load(label_file_path).tolist()
+        audio_names = list(annotations.keys())
+        for audio_name in audio_names:
+            with open(f'./labels/{audio_name}.pkl', 'wb') as f:
+                pickle.dump(annotations[audio_name], f)
+
+    files_in_directory = os.listdir('./labels')
+    filtered_files = [file for file in files_in_directory if file.endswith(".npy")]
+    for file in filtered_files:
+        path_to_file = os.path.join('./labels', file)
+        os.remove(path_to_file)
 
 
 @app.route('/')
