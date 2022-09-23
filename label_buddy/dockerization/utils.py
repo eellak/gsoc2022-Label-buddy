@@ -829,3 +829,36 @@ def define_YOHO():
   return model
 
 
+def get_general_log_mel_spectogram(audio_path, hop_size=6.0, win_length=8.0, sampling_rate=22050):
+
+  # load the audio file with one channel
+    in_signal, in_sr = librosa.load(audio_path, mono=True)
+
+    # Resample the audio file.
+    in_signal_22k = librosa.resample(in_signal, orig_sr=in_sr,
+    target_sr=sampling_rate)
+    in_signal = np.copy(in_signal_22k)
+
+    # calculate constants
+    audio_clip_length_samples = in_signal.shape[0]  # length of the audio clip in samples
+    hop_size_samples = int(hop_size * sampling_rate)  # hop size in samples
+    win_length_samples = int(win_length * sampling_rate)  # window length in samples
+    n_preds = int(math.ceil((audio_clip_length_samples - win_length_samples) / hop_size_samples)) + 1  # number of predictions
+
+    # padding
+    in_signal_pad = np.zeros(((n_preds - 1) * hop_size_samples) + win_length_samples)  # padding the input signal
+    in_signal_pad[0:audio_clip_length_samples] = in_signal
+
+    # initialization
+    mss_in = np.zeros((n_preds, 801, 64))
+
+    for i in range(n_preds):
+        seg = in_signal_pad[i * hop_size_samples:(i * hop_size_samples) + win_length_samples]
+        seg_normalized = librosa.util.normalize(seg)
+        seg_resampled = librosa.resample(seg_normalized, orig_sr=22050, target_sr=16000)
+
+        mss = get_log_melspectrogram(seg_resampled)  # get the log-scaled Mel bands
+        M = mss.T  # transpose the matrix
+        mss_in[i, :, :] = M
+
+    return mss_in

@@ -15,6 +15,9 @@ RUN mkdir -p ./val-zipped
 RUN mkdir -p ./Models
 RUN mkdir -p ./Models/YOHO-1
 RUN mkdir -p ./audios
+RUN mkdir -p ./data
+RUN mkdir -p ./labels
+RUN mkdir -p ./log_mel_spectograms
 
 COPY Models/YOHO-1/YOHO-music-speech.h5 ./Models/YOHO-1/ 
 
