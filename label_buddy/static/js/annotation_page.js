@@ -569,7 +569,7 @@ $('#remove_all_regions').click( function(e) {
     return false; 
 } );
  
- document.getElementById('predictions-button').addEventListener("click", function() {
+document.getElementById('predictions-button').addEventListener("click", function() {
     // get annotation from the python script
     if (predictions_enabled == true){
         AnnotationPredictionsDataRequest();
@@ -588,9 +588,9 @@ $('#remove_all_regions').click( function(e) {
             }       
         });
     }
- });
+});
 
- function AnnotationPredictionsDataRequest() {
+function AnnotationPredictionsDataRequest() {
     // xmlhttp request for exporting data
     if (project_selected_prediction_model){
         const xhttp = new XMLHttpRequest();

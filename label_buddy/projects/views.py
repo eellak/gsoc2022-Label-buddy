@@ -562,6 +562,34 @@ def project_page_view(request, pk):
 
 
 @login_required
+def model_page_view(request, pk):
+
+    """
+    Model page view. A page where users can see basic information about the selected model. 
+    Also, the retraining process of the models is done here.
+    """
+
+    user = get_user(request.user.username)
+    project = get_project(pk)
+    if not user or (user != request.user) or not project:
+        if not project:
+            messages.add_message(request, messages.ERROR, "Project does not exist.")
+        return HttpResponseRedirect("/")
+
+    # Check if user involved to project
+    if not is_user_involved(user, project):
+        messages.add_message(request, messages.ERROR, "You are not involved to requested project.")
+        return HttpResponseRedirect("/")
+
+    context = {
+        "user": user,
+        "project": project,
+    }
+
+    return render(request, "label_buddy/model_page.html", context)
+
+
+@login_required
 def annotate_task_view(request, pk, task_pk):
 
     """

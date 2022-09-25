@@ -9,6 +9,7 @@ urlpatterns = [
     url(r"^projects/create$", views.project_create_view, name="create_project"),
     url(r"^projects/add_prediction_model$", views.project_add_prediction_model_view, name="add_prediction_model"),
     url(r"^projects/(?P<pk>\d+)/tasks$", views.project_page_view, name="project_page"),
+    url(r"^projects/(?P<pk>\d+)/tasks/model$", views.model_page_view, name="model_page"),
     url(r"^projects/(?P<pk>\d+)/tasks/(?P<task_pk>\d+)/annotation$", views.annotate_task_view, name="annotation_page"),
     url(r"^projects/(?P<pk>\d+)/tasks/(?P<task_pk>\d+)/delete$", views.task_delete_view, name="delete_task"),
     url(r"^projects/(?P<pk>\d+)/tasks/(?P<task_pk>\d+)/list_annotations$", views.list_annotations_for_task_view, name="list_task_annotations"),

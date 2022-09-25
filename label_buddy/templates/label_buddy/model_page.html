@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% load static%}
+
+{% load crispy_forms_tags %}
+
+{% block head_files %}
+    {{ block.super }}
+    <link href="{% static 'css/model_page.css' %}" rel="stylesheet" type="text/css">
+    <script type="text/javascript"> 
+        var project_prediction_model_title = "{{ project.prediction_model.title }}";
+        var django_csrf_token = "{{ csrf_token }}";
+        var project_id = "{{ project.id }}";
+    </script>
+    <script src="{% static '/js/model_page.js'%}"></script>
+{% endblock %}
+
+{% block title %} &#9702; {{project.prediction_model.title}} {% endblock %}
+
+{% block breadcrumbs %}
+    <ol style="margin-top: 1%;"  class="breadcrumb bg-light py-0">
+        <li class="breadcrumb-item"><a class="my-link" href="{% url 'index_page' %}"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item active" aria-current="page">
+            {{ project.title }}
+        </li>
+    </ol>
+{% endblock %}
+
+{% block navbar_buttons %}
+{% endblock %}
+
+{% block content %}
+    {{ block.super }}
+    <div style="display: none;" class="alert alert-success alert-dismissible fade" id="export_success_alert">
+        <i style="margin-right: .5%;" class="fas fa-check-circle"></i>
+        <strong id="success_message"></strong>
+        <button type="button" class="close" onclick="hideAlert(this);" aria-label="Close" value="SUCCESS">
+        <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div style="display: none;" class="alert alert-danger alert-dismissible fade" id="export_fail_alert" role="alert">
+        <i style="margin-right: .5%;" class="fas fa-times-circle"></i>
+        <strong id="fail_message"></strong>
+        <button type="button" class="close" onclick="hideAlert(this);" aria-label="Close" value="DANGER">
+        <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+
+    <h2 class="headers-page">
+        {{ project.prediction_model.title}}
+        <sup>
+            <i style="color: #007bff; cursor: pointer;" data-toggle="modal" data-target="#modelModal" class="far fa-question-circle tooltip-icons fa-xs"></i>
+        </sup>
+    </h2>
+
+    <div id="send-approved-annotations-btn-div">
+        <button title="Send Approved Annotations" id="send-approved-annotations-button" name="send_approved_annotations_script" style="width: 230px;" class="btn btn-primary send-approved-annotations-buttons"> <i style="margin-right: 1%;" class="fas fa-paper-plane "></i> Send Approved Annotations</button>
+    </div>
+
+    {% include "model_modal.html" %}
+{% endblock %}
