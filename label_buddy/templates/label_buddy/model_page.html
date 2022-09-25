@@ -51,25 +51,41 @@
         <sup>
             <i style="color: #007bff; cursor: pointer;" data-toggle="modal" data-target="#modelModal" class="far fa-question-circle tooltip-icons fa-xs"></i>
         </sup>
-    </h2>
+    </h2>    
 
-    <div id="send-approved-annotations-btn-div">
-        <button title="Send Approved Annotations" id="send-approved-annotations-button" name="send_approved_annotations_script" style="width: 230px;" class="btn btn-primary send-approved-annotations-buttons"> <i style="margin-right: 1%;" class="fas fa-paper-plane "></i> Send Approved Annotations</button>
+    <table style="width: 51.6397%; margin-left: auto; margin-right: auto; margin-top: 5%; text-align: center;" border="3" cellpadding="10">
+        <tbody>
+            <tr style="height: 20px;">
+                <td style="width: 40%; height: 20px;"> <b>Accuracy</b></td>
+                <td style="width: 40%; height: 20px;"> <b>Precision</b> </td>
+                <td style="width: 40%; height: 20px;"> <b>Recall</b> </td>
+            </tr>
+                <tr style="height: 100px;">
+                <td style="width: 40%; height: 60px;">10%</td>
+                <td style="width: 40%; height: 60px;">20%</td>
+                <td style="width: 40%; height: 60px;">30%</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div id="buttons" style="margin-top: 5%; margin-left: 22%;">
+        <div id="send-approved-annotations-btn-div" class="inner">
+            <button title="Send Approved Annotations" id="send-approved-annotations-button" name="send_approved_annotations_script"  class="btn btn-primary send-approved-annotations-buttons" style="width: 250px; margin-right: 10px;"> <i style="margin-right: 1%;" class="fas fa-paper-plane "></i> Send Approved Annotations</button>
+        </div>
+
+        <div id="training-btn-div" class="inner">
+            <button title="Training Process" id="training-button" name="training_script" class="btn btn-primary training-buttons" style="width: 120px; margin-right: 10px;"> <i style="margin-right: 1%;" class="fas fa-book-open "></i> Training</button>
+        </div>
+
+        <div id="send-base-training-dataset-btn-div" class="inner">
+            <button title="Send Base Training Dataset" id="send-base-training-dataset-button" name="send-base-training-dataset_script" style="width: 250px; margin-right: 10px;" class="btn btn-primary send-base-training-dataset-buttons"> <i style="margin-right: 1%;" class="fas fa-flag-checkered "></i> Send Base Training Dataset</button>
+        </div>
+
+        <div id="send-base-validation-dataset-btn-div" class="inner">
+            <button title="Send Base Validation Dataset" id="send-base-validation-dataset-button" name="send-base-validation-dataset_script" class="btn btn-primary send-base-validation-dataset-buttons" style="width: 250px; margin-right: 10px;"> <i style="margin-right: 1%;" class="fa fa-flag-o" aria-hidden="true" "></i> Send Base Validation Dataset</button>
+        </div>
     </div>
-
-    <div id="training-btn-div">
-        <button title="Training Process" id="training-button" name="training_script" style="width: 100px;" class="btn btn-primary training-buttons"> <i style="margin-right: 1%;" class="fas fa-book-open "></i> Training</button>
-    </div>
-
-    <div id="send-base-training-dataset-btn-div">
-        <button title="Send Base Training Dataset" id="send-base-training-dataset-button" name="send-base-training-dataset_script" style="width: 250px;" class="btn btn-primary send-base-training-dataset-buttons"> <i style="margin-right: 1%;" class="fas fa-flag-checkered "></i> Send Base Training Dataset</button>
-    </div>
-
-    {% comment %} <div id="training-btn-div">
-        <button title="Training Process" id="training-button" name="training_script" style="width: 100px;" class="btn btn-primary training-buttons"> <i style="margin-right: 1%;" class="fas fa-book-open "></i> Training</button>
-    </div> {% endcomment %}
-
-
 
     {% include "model_modal.html" %}
 {% endblock %}
+
