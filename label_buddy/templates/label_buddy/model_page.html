@@ -57,5 +57,19 @@
         <button title="Send Approved Annotations" id="send-approved-annotations-button" name="send_approved_annotations_script" style="width: 230px;" class="btn btn-primary send-approved-annotations-buttons"> <i style="margin-right: 1%;" class="fas fa-paper-plane "></i> Send Approved Annotations</button>
     </div>
 
+    <div id="training-btn-div">
+        <button title="Training Process" id="training-button" name="training_script" style="width: 100px;" class="btn btn-primary training-buttons"> <i style="margin-right: 1%;" class="fas fa-book-open "></i> Training</button>
+    </div>
+
+    <div id="send-base-training-dataset-btn-div">
+        <button title="Send Base Training Dataset" id="send-base-training-dataset-button" name="send-base-training-dataset_script" style="width: 250px;" class="btn btn-primary send-base-training-dataset-buttons"> <i style="margin-right: 1%;" class="fas fa-flag-checkered "></i> Send Base Training Dataset</button>
+    </div>
+
+    {% comment %} <div id="training-btn-div">
+        <button title="Training Process" id="training-button" name="training_script" style="width: 100px;" class="btn btn-primary training-buttons"> <i style="margin-right: 1%;" class="fas fa-book-open "></i> Training</button>
+    </div> {% endcomment %}
+
+
+
     {% include "model_modal.html" %}
 {% endblock %}
