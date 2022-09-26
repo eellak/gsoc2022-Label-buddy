@@ -1,37 +1,27 @@
 # Imports
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS
 from utils import mk_preds_vector, define_YOHO
 import requests
 import glob
-import json
-import numpy as np
-import zipfile
-import glob
-from utils import get_general_log_mel_spectogram
-import pickle
-
-
-# Set environnment variables
-# root_dir = "Models"
-# model_name = 'YOHO-1'
-
-# MODEL_DIR = os.environ['MODELS']
-# MODEL_FILE_LDA = os.environ["YOHO"]
-# MODEL_PATH_YOHO = os.path.join(MODEL_DIR, MODEL_FILE_LDA)
+from utils import training_inference, enrich_dataset
 
 # Creation of the Flask app
 app = Flask(__name__)
+CORS(app)
 
 
 @app.route('/predict', methods=['GET', 'POST'])
 def result():
 
+    '''
+    Route to perform the predictions through a post request.
+    '''
+
     if request.method == 'POST':
 
         print('Processing audio...')
-
-        # print(request.files)
         audio_file_bytes = request.files['audio_data'].read()
 
         path_to_audio_file = './audios/audio_file.wav'
@@ -68,58 +58,91 @@ def result():
 
 @app.route('/train', methods=['GET', 'POST'])
 def train():
-    print("Starting trainig...")
-    os.system('python3 training_inference.py') 
-    print('Training done.')
 
-    resp = jsonify(success=True)
-    return resp
+    '''
+    Route to perform training process through a post request.
+    '''
+
+    if request.method == 'POST':
+
+        # get data (training parameters) from the request
+        epochs = int(request.args.get('epochs'))
+        patience = int(request.args.get('patience'))
+        initial_lr = float(request.args.get('lr'))
+
+        if os.path.isfile('train-zipped/d1.zip') and os.path.isfile('train-zipped/d1.zip'):
+            print("Starting trainig...")
+            loss, binary_acc = training_inference(epochs, patience, initial_lr)
+            print('Training done.')
+
+            # respond with the current loss and binary accuracy
+            response_data = {
+                "loss": loss,
+                "binary_accuracy": binary_acc
+            }
+
+            return response_data
+
+        else: 
+            print('There are no trainig/validation data to start the trianing process.')
+            return 'Missing Data1!', 400
 
 
 @app.route('/get_training_data', methods=['GET', 'POST'])
 def get_trainin_data():
-    # if key doesn't exist, returns None
-    # dataset = request.args.get('dataset')
     
-    print("Getting trainig data...")
-    data = {"data": "training"}
+    '''
+    Route to get basic training data. 
+    '''
 
-    # if dataset is not None:
-    lb_dtst_url = "http://127.0.0.1:8000/api/v1/projects/get_dataset"
-    r = requests.post(lb_dtst_url, data=data)
+    if os.path.isfile('train-zipped/d1.zip'):
+        print("Trainig data already exist!")
+    else:
+        print("Getting trainig data...")
+        data = {"data": "training"}
 
-    print(f"Request: {r}")
+        # if dataset is not None:
+        lb_dtst_url = "http://127.0.0.1:8000/api/v1/projects/get_dataset"
+        r = requests.post(lb_dtst_url, data=data)
 
-    #/home/baku/Desktop/DockerTesting/train-zipped/d1.zip
-    with open("train-zipped/d1.zip", "wb") as fd:
-        for chunk in r.iter_content(chunk_size=512):
-            fd.write(chunk)
+        print(f"Request: {r}")
 
-    print('Training data saved.')
+        #/home/baku/Desktop/DockerTesting/train-zipped/d1.zip
+        with open("train-zipped/d1.zip", "wb") as fd:
+            for chunk in r.iter_content(chunk_size=512):
+                fd.write(chunk)
+
+        print('Training data saved.')
 
     resp = jsonify(success=True)
     return resp
-
 
 
 @app.route('/get_validation_data', methods=['GET', 'POST'])
 def get_validation_data():
 
-    print("Getting validation data...")
+    '''
+    Route to get basic validation data. 
+    '''
 
-    data = {"data": "validation"}
+    if os.path.isfile('val-zipped/BBC-Val.zip'):
+        print("Validation data already exist!")
+    else:
+        print("Getting validation data...")
 
-    # if dataset is not None:
-    lb_dtst_url = "http://127.0.0.1:8000/api/v1/projects/get_dataset"
-    r = requests.post(lb_dtst_url, data=data)
+        data = {"data": "validation"}
 
-    print(f"Request: {r}")
+        # if dataset is not None:
+        lb_dtst_url = "http://127.0.0.1:8000/api/v1/projects/get_dataset"
+        r = requests.post(lb_dtst_url, data=data)
 
-    with open("val-zipped/BBC-Val.zip", "wb") as fd:
-        for chunk in r.iter_content(chunk_size=512):
-            fd.write(chunk)
-    
-    print('Validation data saved.')
+        print(f"Request: {r}")
+
+        with open("val-zipped/BBC-Val.zip", "wb") as fd:
+            for chunk in r.iter_content(chunk_size=512):
+                fd.write(chunk)
+        
+        print('Validation data saved.')
 
     resp = jsonify(success=True)
     return resp
@@ -127,6 +150,10 @@ def get_validation_data():
 
 @app.route('/get_approved_data_annotations', methods=['GET', 'POST'])
 def get_approved_data_annotations():
+
+    '''
+    Route to get data from all the approved annotation of the current project. 
+    '''
 
     project_id = request.args.get('project_id')
 
@@ -140,49 +167,37 @@ def get_approved_data_annotations():
     flask_resp = jsonify(success=True)
     return flask_resp
 
-@app.route('/enrich_dataset', methods=['GET', 'POST'])
-def enrich_dataset():
 
-    # For zipped files in data folder 
-    # redirect sound data to audios folder
-    # and npy files to the labels folder
-    zip_data_paths = glob.glob("./data/*")
-    for zip_file_path in zip_data_paths:
-        with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
-            for zip_info in zip_ref.infolist():
-                if zip_info.filename[-1] == '/':
-                    continue
+@app.route('/send_model_weights', methods=['GET', 'POST'])
+def send_model_weights():
 
-                zip_info.filename = os.path.basename(zip_info.filename)
+    '''
+    Route to send current model weights for download. 
+    '''
 
-                if zip_info.filename.endswith(('.mp3', '.wav')):
-                    zip_ref.extract(zip_info, "./audios/")
-                if zip_info.filename.endswith(('.npy')):
-                    zip_ref.extract(zip_info, "./labels/")
+    path_of_trained_weight = './Models/YOHO-1/model-best.h5'
+    path_of_pretrained_weight = './Models/YOHO-1/YOHO-music-speech.h5'
 
-    # Then for each audio get the log mel spectogram and add it to the corresponding folder
-    audio_files = [os.path.join(path, name) for path, subdirs, files in os.walk('./audios') for name in files]
-    for audio_file_path in audio_files:
-        audio_name = audio_file_path.split("/")[-1].split(".")[0]
-        log_melspectrogram = get_general_log_mel_spectogram(audio_file_path)
-        np.save(f"./log_mel_spectograms/{audio_name}.npy", log_melspectrogram, allow_pickle=True)
+    if os.path.isfile(path_of_trained_weight):
+        path = path_of_trained_weight
+    else:
+        path = path_of_pretrained_weight
 
-    # Extract the annotation labels for each sound in pickle format
-    label_files = [os.path.join(path, name) for path, subdirs, files in os.walk('./labels') for name in files]
-    for label_file_path in label_files:
-        annotations = np.load(label_file_path, allow_pickle=True).tolist()
-        audio_names = list(annotations.keys())
-        for audio_name in audio_names:
-            with open(f'./labels/{audio_name}.pkl', 'wb') as f:
-                pickle.dump(annotations[audio_name], f)
-    
-    # Remove .npy files after extraction
-    filtered_files = [file for file in label_files if file.endswith(".npy")]
-    for file_path in filtered_files:
-        os.remove(file_path)
+    return send_file(path, as_attachment=True)
 
-    flask_resp = jsonify(success=True)
-    return flask_resp
+
+@app.route('/enrich_data', methods=['GET', 'POST'])
+def enrich_data():
+
+    '''
+    Helper route to perform data enrichment on demand. 
+    '''
+    done = enrich_dataset()
+
+    print(done)
+
+    resp = jsonify(success=True)
+    return resp
 
 
 @app.route('/')

@@ -5,10 +5,10 @@ RUN apt install -y build-essential
 RUN apt-get -y install python3-dev
 RUN apt-get install -y libsndfile1-dev
 
-COPY training_inference.py ./training_inference.py
 COPY utils.py ./utils.py
 COPY api.py ./api.py
 COPY requirements.txt ./requirements.txt
+# COPY wsgi.ini ./wsgi.ini
 
 RUN mkdir -p ./train-zipped
 RUN mkdir -p ./val-zipped
@@ -16,11 +16,12 @@ RUN mkdir -p ./Models
 RUN mkdir -p ./Models/YOHO-1
 RUN mkdir -p ./audios
 RUN mkdir -p ./data
-RUN mkdir -p ./labels
 RUN mkdir -p ./log_mel_spectograms
+RUN mkdir -p ./labels
 
 COPY Models/YOHO-1/YOHO-music-speech.h5 ./Models/YOHO-1/ 
 
 RUN pip3 install -r requirements.txt
 
 CMD [ "python3", "-W ignore" ,"api.py"]
+# CMD ["uwsgi", "wsgi.ini"]

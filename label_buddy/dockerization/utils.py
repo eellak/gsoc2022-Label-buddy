@@ -1,3 +1,4 @@
+import binascii
 import numpy as np
 import IPython
 import math
@@ -15,6 +16,7 @@ import glob
 import random
 import datetime
 import tensorflow as tf
+import zipfile
 
 
 def extract_train_zip():
@@ -28,7 +30,7 @@ def extract_train_zip():
   zip_name = "./train-zipped/d1.zip"
   with ZipFile(zip_name, 'r') as zip:
     zip.extractall('yoho_train_data')
-    print("Extracted all sound files into the folder {}")
+    print("Extracted all training data.")
 
   # zip_name = "./train-zipped/BBC-Train.zip"
   # with ZipFile(zip_name, 'r') as zip:
@@ -45,16 +47,16 @@ def extract_val_zip():
   zip_name = "./val-zipped/BBC-Val.zip"
   with ZipFile(zip_name, 'r') as zip:
     zip.extractall('yoho_validation_data')
-    print("Extracted all sound files into the folder")
+    print("Extracted all validation data.")
 
 
 def smoothe_events(events):
 
   '''
-    Smoothing is performed over the output events to eliminate the occurrence
-    of spurious audio events. Filtering - if the duration of the audio event
-    is too short or if the silence between consecutive events of the same
-    acoustic class is too short, we remove the occurrence.
+  Smoothing is performed over the output events to eliminate the occurrence
+  of spurious audio events. Filtering - if the duration of the audio event
+  is too short or if the silence between consecutive events of the same
+  acoustic class is too short, we remove the occurrence.
   '''
 
   music_events = []
@@ -248,9 +250,10 @@ def to_seg_by_class(events, n_frames = 801):
 def get_labels():
 
   labels = glob.glob("./yoho_train_data/content/**/mel-id-label-[0-9]*.pickle", recursive=True)
+  extra_labels = glob.glob("./labels/*.pickle")
 
   counter = 0
-  for ll in labels:
+  for ll in labels + extra_labels:
     print(f'Training label {counter} from {len(labels)}.')
     with open(ll, 'rb') as f:
       n = pickle.load(f)
@@ -354,11 +357,13 @@ def get_np_arrays():
   Load the individual numpy arrays into partition
   """
 
-  data = glob.glob("./yoho_train_data/content/**/mel-id-[0-9]*.npy", recursive=True) 
-#   data = sort_nicely(data)
+  pre_data = glob.glob("./yoho_train_data/content/**/mel-id-[0-9]*.npy", recursive=True) 
+  extra_data = glob.glob("./log_mel_spectograms/*.npy")
+  data = pre_data + extra_data
 
-  labels = glob.glob("./yoho_train_data/content/**/mel-id-label-[0-9]*.npy", recursive=True)
-#   labels = sort_nicely(labels)
+  pre_labels = glob.glob("./yoho_train_data/content/**/mel-id-label-[0-9]*.npy", recursive=True)
+  extra_labels = glob.glob("./labels/*.npy")
+  labels = pre_labels + extra_labels
 
   train_examples = [(data[i], labels[i]) for i in range(len(data))]
 
@@ -862,3 +867,119 @@ def get_general_log_mel_spectogram(audio_path, hop_size=6.0, win_length=8.0, sam
         mss_in[i, :, :] = M
 
     return mss_in
+
+
+def enrich_dataset():
+
+    # For zipped files in data folder 
+    # redirect sound data to audios folder
+    # and npy files to the labels folder
+    zip_data_paths = glob.glob("./data/*")
+    for zip_file_path in zip_data_paths:
+        with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+            for zip_info in zip_ref.infolist():
+                if zip_info.filename[-1] == '/':
+                    continue
+
+                zip_info.filename = os.path.basename(zip_info.filename)
+
+                if zip_info.filename.endswith(('.mp3', '.wav')):
+                    zip_ref.extract(zip_info, "./audios/")
+                if zip_info.filename.endswith(('.npy')):
+                    zip_ref.extract(zip_info, "./labels/")
+
+    # Then for each audio get the log mel spectogram and add it to the corresponding folder
+    audio_files = [os.path.join(path, name) for path, subdirs, files in os.walk('./audios') for name in files]
+    for audio_file_path in audio_files:
+        audio_name = audio_file_path.split("/")[-1].split(".")[0]
+        log_melspectrogram = get_general_log_mel_spectogram(audio_file_path)
+        np.save(f"./log_mel_spectograms/{audio_name}.npy", log_melspectrogram, allow_pickle=True)
+
+    # Extract the annotation labels for each sound in pickle format
+    label_files = [os.path.join(path, name) for path, subdirs, files in os.walk('./labels') for name in files]
+    for label_file_path in label_files:
+        annotations = np.load(label_file_path, allow_pickle=True).tolist()
+        audio_names = list(annotations.keys())
+        for audio_name in audio_names:
+            with open(f'./labels/{audio_name}.pickle', 'wb') as f:
+                pickle.dump(annotations[audio_name], f)
+    
+    # Remove .npy files after extraction
+    filtered_files = [file for file in label_files if file.endswith(".npy")]
+    for file_path in filtered_files:
+        os.remove(file_path)
+
+    return True
+
+
+def training_inference(training_epochs=300, training_patience=15, initial_learning_rate=0.001):
+
+  print("Extracting training zip...")
+  extract_train_zip()
+  print("Extracting validation zip...")
+  extract_val_zip()
+  print('Enriching Dataset...')
+  enrich_dataset()
+
+  print("Getting labels...")
+  get_labels()
+
+  print("Getting training examples...")
+  train_examples = get_np_arrays()
+
+  print("Partitioning...")
+  partition = {}
+  partition['train'] = create_train_partition(train_examples)
+  partition['validation'] = validation_data()
+
+  # Parameters
+  params = {'dim': (1, ),
+            'batch_size': 32,
+            'epoch_size': 0,
+            'n_classes': 2,
+            'shuffle': True}
+
+  # Generators
+  training_generator = DataGenerator(partition['train'], **params)
+  validation_generator = DataGenerator(partition['validation'], **params)
+
+  root_dir = "./Models"
+  model_name = 'YOHO-1'
+  model_dir = os.path.join(root_dir, model_name)
+
+  try: 
+      os.mkdir(model_dir) 
+  except OSError as error: 
+      pass  
+
+  print("Defining YOHO...")
+  model = define_YOHO()
+
+  model.compile(optimizer=tf.keras.optimizers.Adam(initial_learning_rate), loss=my_loss_fn, metrics=[binary_acc])
+
+  initial_epoch = 0
+  p = os.path.join(model_dir, 'custom_params.pickle')
+  if os.path.isfile(p):
+    print("Existing model found. Loading weights and training ...")
+    with open(p, 'rb') as f:
+      custom_params = pickle.load(f)
+      last_epoch = custom_params['last_epoch']
+      initial_epoch = last_epoch
+    model_path = os.path.join(model_dir, 'model-best.h5')
+    print("Model path: " + str(model_path))
+    model.load_weights(model_path)
+
+    model.fit(training_generator, validation_data=validation_generator, epochs=training_epochs, initial_epoch=initial_epoch,
+              callbacks=[MyCustomCallback_3(model_dir, patience=training_patience)], verbose=1)
+    
+  else:
+    print("No existing model found. Begin training ...")
+
+    model.fit(training_generator, validation_data=validation_generator, epochs=training_epochs,
+              callbacks=[MyCustomCallback_3(model_dir, patience=training_patience)], verbose=1)
+
+  metrics = model.evaluate(validation_generator)
+  loss = metrics[0]
+  binary_accurracy = metrics[1]
+
+  return loss, binary_accurracy
