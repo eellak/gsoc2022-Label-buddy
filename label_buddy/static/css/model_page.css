@@ -1,0 +1,90 @@
+#header-div {
+    margin-left: 1%;
+    margin-right: 1%;
+    margin-top: 2%;
+}
+
+#header-div:after {
+    content:'';
+    display:block; /* or whatever else than inline */
+    clear:both;
+}
+
+#send-approved-annotations-btn-div {
+    text-align: right;
+    margin-top: .5%;
+}
+
+.send-approved-annotations-buttons:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.send-approved-annotations-button:disabled {
+    background: #999;
+    color: #555;
+    cursor: not-allowed;
+}
+
+#training-btn-div {
+    text-align: right;
+    margin-top: auto;
+    margin-right: 25%;
+}
+
+.training-buttons:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.training-button:disabled {
+    background: #999;
+    color: #555;
+    cursor: not-allowed;
+}
+
+#send-base-training-dataset-btn-div {
+    text-align: right;
+    margin-top: .5%;
+    margin-right: 50%;
+}
+
+.send-base-training-dataset-buttons:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.send-base-training-dataset-button:disabled {
+    background: #999;
+    color: #555;
+    cursor: not-allowed;
+}
+
+#send-base-validation-dataset-btn-div {
+    text-align: right;
+    margin-top: .5%;
+    margin-right: 75%;
+}
+
+.send-base-validation-dataset-buttons:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.send-base-validation-dataset-button:disabled {
+    background: #999;
+    color: #555;
+    cursor: not-allowed;
+}
+
+#buttons
+{
+    width:100%;
+    text-align: center;
+}
+
+.inner
+{
+    display: table-cell;
+}
+  
