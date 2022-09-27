@@ -1,4 +1,13 @@
 var selected_export_format = null;
+
+$(document).ready(
+    function()
+    {
+        const model_page_button = document.getElementById('model-page-button');
+        if (project_selected_prediction_model != 'None') model_page_button.disabled = false;
+    }
+);
+
 // fix filters after page reload
 function fixFilters() {
     var parameters = window.location.href.split('?')[1];

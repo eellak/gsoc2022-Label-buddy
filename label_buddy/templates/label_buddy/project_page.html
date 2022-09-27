@@ -9,6 +9,7 @@
     <link href="{% static 'css/project_page.css' %}" rel="stylesheet" type="text/css">
     <script type="text/javascript"> 
         var project_id = "{{ project.id }}";
+        var project_selected_prediction_model = "{{ project.prediction_model }}";
         var django_csrf_token = "{{ csrf_token }}";
     </script>
     <script src="{% static '/js/project_page.js'%}"></script>
@@ -76,8 +77,10 @@
                 <button style="float: right; margin-right: .5%;" data-toggle="modal" data-target="#importModal" class="btn btn-primary">
                     <i style="margin-right: 3%;" class="fas fa-cloud-upload-alt"></i> Import...
                 </button>
-                <a class="btn btn-primary" style="float: right; margin-right: .5%;" role="button" href="{% url 'model_page' project.id %}"> 
-                    <i style="margin-right: 3%;" class="fas fa-brain"></i> Model
+                <a href="{% url 'model_page' project.id %}">
+                    <button id="model-page-button" class="btn btn-primary dowload-model-weights-buttons" style="float: right; margin-right: .5%;" disabled=true>
+                         <i style="margin-right: 3%;" class="fa fa-brain"></i> Model
+                    </button>
                 </a>
             {% endif %}
             {% comment %}
