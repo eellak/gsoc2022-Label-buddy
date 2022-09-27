@@ -62,7 +62,6 @@ function training(epochs, patience, initial_lr){
         if (this.readyState == 4 && this.status == 200) {
            // Typical action to be performed when the document is ready:
             NProgress.done();
-            alert("Training has begun!");
             data = JSON.parse(this.responseText);
 
             document.getElementById('binary_accuracy').innerHTML = data['binary_accuracy'];

@@ -10,6 +10,8 @@
     <script type="text/javascript"> 
         var project_prediction_model_title = "{{ project.prediction_model.title }}";
         var project_prediction_model = "{{ project.prediction_model }}";
+        var project_prediction_accuracy = "{{ project.prediction_model.current_accuracy_precentage }}";
+        var project_prediction_loss = "{{ project.prediction_model.current_loss_precentage }}";
         var django_csrf_token = "{{ csrf_token }}";
         var project_id = "{{ project.id }}";
     </script>
@@ -61,8 +63,8 @@
                 <td style="width: 40%; height: 20px;"> <b>Loss</b> </td>
             </tr>
                 <tr style="height: 100px;">
-                <td id="binary_accuracy" style="width: 40%; height: 60px;">-</td>
-                <td id="loss" style="width: 40%; height: 60px;">-</td>
+                <td id="binary_accuracy" style="width: 40%; height: 60px;"> {{ project.prediction_model.current_accuracy_precentage }} </td>
+                <td id="loss" style="width: 40%; height: 60px;"> {{ project.prediction_model.current_loss_precentage }} </td>
             </tr>
         </tbody>
     </table>
@@ -95,7 +97,7 @@
         <div id="dowload-model-weights-btn-div" class="inner">
             <a href="http://127.0.0.1:5000/send_model_weights" download>
                 <button title="Send Base Validation Dataset" id="dowload-model-weights-button" name="dowload-model-weights_script" class="btn btn-primary dowload-model-weights-buttons" style="width: 250px; margin-right: 10px;" disabled=true>
-                     <i style="margin-right: 1%;" class="fa fa-download"></i> Send Base Validation Dataset
+                     <i style="margin-right: 1%;" class="fa fa-download"></i> Download Model Weights
                 </button>
             </a>
         </div>

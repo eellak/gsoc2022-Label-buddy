@@ -32,8 +32,8 @@ from tasks.models import (
 
 # Global variables
 ACCEPTED_FORMATS = ['.wav', '.mp3', '.mp4', ]
-CONTAINER_URL = '127.0.0.1'
-CONTAINER_PORT = '5000'
+# CONTAINER_URL = '127.0.0.1'
+# CONTAINER_PORT = '5000'
 
 # Functions
 
@@ -770,7 +770,8 @@ def pull_docker_image(dockerhub_repo):
     print("Client ready.")
     image = client.images.pull(dockerhub_repo)
     print("Image pulled.")
-    container = client.containers.run(image, detach=True, ports= {f'{CONTAINER_PORT}/tcp': ('127.0.0.1', int(CONTAINER_PORT))})
+    # container = client.containers.run(image, detach=True, ports= {f'{CONTAINER_PORT}/tcp': ({CONTAINER_URL}, int(CONTAINER_PORT))})
+    container = client.containers.run(image, detach=True, network_mode='host')
     print(f'Docker {container} started.')
 
     return container

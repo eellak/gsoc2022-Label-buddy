@@ -46,6 +46,7 @@ class PredictionModels(models.Model):
     weight_file = models.FileField(upload_to='model_weights', blank=True, help_text='Prediction Model weights file')
     test_dataset = models.FileField(upload_to='model_datasets', blank=True, help_text='Prediction Model test dataset')
     current_accuracy_precentage = models.FloatField(blank=True, null=True, default=0, help_text='Current accuracy percentage')
+    current_loss_precentage = models.FloatField(blank=True, null=True, default=0, help_text='Current loss percentage')
 
     class Meta:
         ordering = ['id']
