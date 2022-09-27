@@ -1103,13 +1103,13 @@ class get_dataset_view(APIView):
             if request.POST['data'] == 'training':
 
                 return FileResponse( 
-                    open('/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy/media/datasets/train-zipped/d1.zip', 'rb'),
+                    open('./media/datasets/train-zipped/d1.zip', 'rb'),
                     as_attachment=True, filename='d1.zip'
                 )
 
             if request.POST['data'] == 'validation':
 
                 return FileResponse( 
-                    open('/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy/media/datasets/val-zipped/BBC-Val.zip', 'rb'),
+                    open('./media/datasets/val-zipped/BBC-Val.zip', 'rb'),
                     as_attachment=True, filename='BCC-Val.zip'
                 )

@@ -32,6 +32,8 @@ from tasks.models import (
 
 # Global variables
 ACCEPTED_FORMATS = ['.wav', '.mp3', '.mp4', ]
+CONTAINER_URL = '127.0.0.1'
+CONTAINER_PORT = '5000'
 
 # Functions
 
@@ -688,17 +690,11 @@ def get_ml_audio_prediction(audio_file_path, model_title, model_weight_file):
     Predict audio tags using the machine learning model that has been chosen.
     '''
 
-    audio_path = '/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy' + audio_file_path
+    audio_path = '.' + audio_file_path
 
     if (str(model_title) == 'YOHO_container'):
         #docker
-        preds = send_audio_to_container_for_preds('/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy' + audio_file_path)
-
-    if (str(model_title) == 'YOHO'):
-
-        model = define_YOHO()
-        model.load_weights("/home/baku/Desktop/gsoc2022-Label-buddy/label_buddy/media/" + str(model_weight_file))
-        preds = mk_preds_vector(audio_path, model)
+        preds = send_audio_to_container_for_preds('.' + audio_file_path)
 
     if (str(model_title) == 'musicnn'):
         taggram, tags, features = extractor(audio_path, input_length=3, model='MTT_musicnn', extract_features=True)
@@ -752,8 +748,11 @@ def check_if_model_file_is_valid(model_file):
 
 def send_audio_to_container_for_preds(audio_file_path):
 
+    '''
+    Function that sends the prediction data and request to the container.
+    '''
 
-    url = 'http://127.0.0.1:5000/predict'
+    url = f'http://{CONTAINER_URL}:5000/predict'
     with open(audio_file_path, 'rb') as file:
         files = {'audio_data': file}
         req = requests.post(url, files=files)
@@ -763,10 +762,15 @@ def send_audio_to_container_for_preds(audio_file_path):
 
 def pull_docker_image(dockerhub_repo):
 
+    '''
+    Function that runs docker, pulls image for the given dockerhub and runs the container.
+    '''
+
     client = docker.from_env()
     print("Client ready.")
     image = client.images.pull(dockerhub_repo)
     print("Image pulled.")
-    container = client.containers.run(image, detach=True, ports= {'5000/tcp': ('127.0.0.1', 5000)})
-
+    container = client.containers.run(image, detach=True, ports= {f'{CONTAINER_PORT}/tcp': ('127.0.0.1', int(CONTAINER_PORT))})
     print(f'Docker {container} started.')
+
+    return container
