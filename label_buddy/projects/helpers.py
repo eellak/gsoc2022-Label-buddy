@@ -32,8 +32,8 @@ from tasks.models import (
 
 # Global variables
 ACCEPTED_FORMATS = ['.wav', '.mp3', '.mp4', ]
-# CONTAINER_URL = '127.0.0.1'
-# CONTAINER_PORT = '5000'
+CONTAINER_URL = '127.0.0.1'
+CONTAINER_PORT = '5000'
 
 # Functions
 
@@ -752,7 +752,7 @@ def send_audio_to_container_for_preds(audio_file_path):
     Function that sends the prediction data and request to the container.
     '''
 
-    url = f'http://{CONTAINER_URL}:5000/predict'
+    url = f'http://{CONTAINER_URL}:{CONTAINER_PORT}/predict'
     with open(audio_file_path, 'rb') as file:
         files = {'audio_data': file}
         req = requests.post(url, files=files)
