@@ -51,49 +51,83 @@ class SigninTest(TestCase):
         user = authenticate(username='TestUserName', password='TestUserWrongPassword')
         self.assertFalse(user is not None and user.is_authenticated)
 
-class TaskTest(TestCase):
+
+class PredictionModelTest(TestCase):
 
     def setUp(self):
-        self.TestUser = get_user_model().objects.create_user(username='TestUserName', password='TestUserPassword', email='TestUserName@mail.com')
-        self.TestUser.save()
-
-        list_of_users = [self.TestUser,]
-
-        self.TestLabel = Label.objects.create(name='TestLabel1')
-        self.TestLabel.save()
-
-        self.TestPredictionModel = PredictionModels.objects.create(title='TestPredictionModel', id=0)
+        self.TestPredictionModel = PredictionModels.objects.create(title='TestPredictionModel')
+        self.TestPredictionModel_pk = self.TestPredictionModel.pk
         self.TestPredictionModel.save()
 
-        list_of_labels = [self.TestLabel,]
+    def test_update_prediction_model_title(self):
+        self.TestPredictionModel.title = 'new Title'
+        self.TestPredictionModel.save()
+        self.assertEqual(self.TestPredictionModel.title, 'new Title')
 
-        self.TestProject = Project(title="TestProject", id=0)
-        self.TestProject.prediction_model.add(self.TestPredictionModel)
+    def tearDown(self):
+        self.TestPredictionModel.delete()
+
+
+# class LabelTest(TestCase):
+
+#     def setUp(self):
+#         self.TestLabel = Label.objects.create(name='TestLabel1')
+#         self.TestLabel.save()
+
+#     def test_update_label_title(self):
+#         self.TestLabel.name = 'new Label'
+#         self.TestLabel.save()
+#         self.assertEqual(self.TestLabel.name, 'new Label')
+
+#     def tearDown(self):
+#         self.TestLabel.delete()
+
+
+# class TaskTest(TestCase):
+
+#     def setUp(self):
+#         self.TestUser = get_user_model().objects.create_user(username='TestUserName', password='TestUserPassword', email='TestUserName@mail.com')
+#         self.TestUser.save()
+
+#         list_of_users = [self.TestUser,]
+
+#         self.TestLabel = Label.objects.create(name='TestLabel1')
+#         self.TestLabel.save()
+
+#         list_of_labels = [self.TestLabel,]
+
+#         self.TestPredictionModel = PredictionModels.objects.create(title='TestPredictionModel')
+#         self.TestPredictionModel_pk = self.TestPredictionModel.pk
+#         self.TestPredictionModel.save()
+
+        # list_of_predictionModels = [self.TestPredictionModel,]
+
+        # self.TestProject = Project(title="TestProject", id=0)
+        # self.TestPredictionModel_object = PredictionModels.objects.get(id=self.TestPredictionModel_pk)
+        # print(self.TestPredictionModel_pk)
+        # self.TestProject.prediction_model.add(self.TestPredictionModel_object)
+        # self.TestProject.save()
 
         # self.TestProject.labels.add(self.TestLabel)
         # self.TestProject.reviewers.add(self.TestUser)
-
         # self.TestProject.labels.set([list_of_labels])
         # self.TestProject.reviewers.set([list_of_users])
         # self.TestProject.managers.set([list_of_users])
         # self.TestProject.annotators.set([list_of_users])
-        self.TestProject.save()
 
-        self.task = Task(project=self.TestProject, description="FirstDescription")
-        self.task.save()
+        # self.task = Task(project=self.TestProject, description="FirstDescription")
+        # self.task.save()
 
-    def tearDown(self):
-        self.TestProject.delete()
+    # def test_read_task(self):
+    #     self.assertEqual(self.task.project, self.TestProject)
 
-    def test_read_task(self):
-        self.assertEqual(self.task.project, self.TestProject)
+    # def test_update_task_description(self):
+    #     self.TestPredictionModel.title = 'new description'
+    #     self.TestPredictionModel.save()
+    #     self.assertEqual(self.TestPredictionModel.title, 'new description')
 
-    def test_update_task_description(self):
-        self.task.description = 'new description'
-        self.task.save()
-        self.assertEqual(self.task.description, 'new description')
-
-
+    # def tearDown(self):
+    #     self.TestProject.delete()
 
 # c = Client()
 # logged_in = c.login(username='TestUserName', password='TestUserPassword')
