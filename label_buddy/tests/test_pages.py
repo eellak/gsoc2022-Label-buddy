@@ -68,19 +68,14 @@ class PredictionModelTest(TestCase):
         self.TestPredictionModel.delete()
 
 
-# class LabelTest(TestCase):
+class LabelTest(TestCase):
 
-#     def setUp(self):
-#         self.TestLabel = Label.objects.create(name='TestLabel1')
-#         self.TestLabel.save()
+    def setUp(self):
+        self.TestLabel = Label.objects.create(name='TestLabel1')
+        self.TestLabel.save()
 
-#     def test_update_label_title(self):
-#         self.TestLabel.name = 'new Label'
-#         self.TestLabel.save()
-#         self.assertEqual(self.TestLabel.name, 'new Label')
-
-#     def tearDown(self):
-#         self.TestLabel.delete()
+    def tearDown(self):
+        self.TestLabel.delete()
 
 
 # class TaskTest(TestCase):
