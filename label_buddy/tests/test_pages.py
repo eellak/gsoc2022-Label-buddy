@@ -108,51 +108,31 @@ class ProjectTest(TestCase):
         self.assertEqual(self.TestProject.title, 'new TestProject')
 
 
-# class TaskTest(TestCase):
+class TaskTest(TestCase):
 
-#     def setUp(self):
-        # self.TestUser = get_user_model().objects.create_user(username='TestUserName', password='TestUserPassword', email='TestUserName@mail.com')
-        # self.TestUser.save()
+    def setUp(self):
+        self.TestUser = get_user_model().objects.create_user(username='TestUserName', password='TestUserPassword', email='TestUserName@mail.com')
+        self.TestUser.save()
 
-#         list_of_users = [self.TestUser,]
+        self.TestLabel = Label.objects.create(name='TestLabel1')
+        self.TestLabel.save()
 
-#         self.TestLabel = Label.objects.create(name='TestLabel1')
-#         self.TestLabel.save()
 
-#         list_of_labels = [self.TestLabel,]
+        self.TestPredictionModel = PredictionModels.objects.create(title='TestPredictionModel')
+        self.TestPredictionModel.save()
 
-#         self.TestPredictionModel = PredictionModels.objects.create(title='TestPredictionModel')
-#         self.TestPredictionModel_pk = self.TestPredictionModel.pk
-#         self.TestPredictionModel.save()
 
-        # list_of_predictionModels = [self.TestPredictionModel,]
+        self.TestProject = Project(title="TestProject", prediction_model=self.TestPredictionModel)
+        self.TestProject.save()
 
-        # self.TestProject = Project(title="TestProject", id=0)
-        # self.TestPredictionModel_object = PredictionModels.objects.get(id=self.TestPredictionModel_pk)
-        # print(self.TestPredictionModel_pk)
-        # self.TestProject.prediction_model.add(self.TestPredictionModel_object)
-        # self.TestProject.save()
+        self.task = Task(project=self.TestProject)
+        self.task.save()
 
-        # self.TestProject.labels.add(self.TestLabel)
-        # self.TestProject.reviewers.add(self.TestUser)
-        # self.TestProject.labels.set([list_of_labels])
-        # self.TestProject.reviewers.set([list_of_users])
-        # self.TestProject.managers.set([list_of_users])
-        # self.TestProject.annotators.set([list_of_users])
+    def test_read_task(self):
+        self.assertEqual(self.task.project, self.TestProject)
 
-        # self.task = Task(project=self.TestProject, description="FirstDescription")
-        # self.task.save()
-
-    # def test_read_task(self):
-    #     self.assertEqual(self.task.project, self.TestProject)
-
-    # def test_update_task_description(self):
-    #     self.TestPredictionModel.title = 'new description'
-    #     self.TestPredictionModel.save()
-    #     self.assertEqual(self.TestPredictionModel.title, 'new description')
-
-    # def tearDown(self):
-    #     self.TestProject.delete()
+    def tearDown(self):
+        self.TestProject.delete()
 
 # c = Client()
 # logged_in = c.login(username='TestUserName', password='TestUserPassword')
