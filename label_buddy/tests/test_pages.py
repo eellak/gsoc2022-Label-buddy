@@ -56,7 +56,6 @@ class PredictionModelTest(TestCase):
 
     def setUp(self):
         self.TestPredictionModel = PredictionModels.objects.create(title='TestPredictionModel')
-        self.TestPredictionModel_pk = self.TestPredictionModel.pk
         self.TestPredictionModel.save()
 
     def test_update_prediction_model_title(self):
@@ -84,13 +83,29 @@ class UserTest(TestCase):
         self.TestUser = get_user_model().objects.create_user(username='TestUserName', password='TestUserPassword', email='TestUserName@mail.com')
         self.TestUser.save()
 
-    def test_update_prediction_model_title(self):
+    def test_update_user_username(self):
         self.TestUser.username = 'new TestUserName'
         self.TestUser.save()
         self.assertEqual(self.TestUser.username, 'new TestUserName')
 
     def tearDown(self):
         self.TestUser.delete()
+
+
+class ProjectTest(TestCase):
+
+    def setUp(self):
+
+        self.TestPredictionModel = PredictionModels.objects.create(title='TestPredictionModel')
+        self.TestPredictionModel.save()
+
+        self.TestProject = Project(title="TestProject", prediction_model=self.TestPredictionModel)
+        self.TestProject.save()
+    
+    def test_project_title(self):
+        self.TestProject.title = 'new TestProject'
+        self.TestProject.save()
+        self.assertEqual(self.TestProject.title, 'new TestProject')
 
 
 # class TaskTest(TestCase):
