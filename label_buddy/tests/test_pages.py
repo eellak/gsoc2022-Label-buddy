@@ -78,11 +78,26 @@ class LabelTest(TestCase):
         self.TestLabel.delete()
 
 
+class UserTest(TestCase):
+
+    def setUp(self):
+        self.TestUser = get_user_model().objects.create_user(username='TestUserName', password='TestUserPassword', email='TestUserName@mail.com')
+        self.TestUser.save()
+
+    def test_update_prediction_model_title(self):
+        self.TestUser.username = 'new TestUserName'
+        self.TestUser.save()
+        self.assertEqual(self.TestUser.username, 'new TestUserName')
+
+    def tearDown(self):
+        self.TestUser.delete()
+
+
 # class TaskTest(TestCase):
 
 #     def setUp(self):
-#         self.TestUser = get_user_model().objects.create_user(username='TestUserName', password='TestUserPassword', email='TestUserName@mail.com')
-#         self.TestUser.save()
+        # self.TestUser = get_user_model().objects.create_user(username='TestUserName', password='TestUserPassword', email='TestUserName@mail.com')
+        # self.TestUser.save()
 
 #         list_of_users = [self.TestUser,]
 
