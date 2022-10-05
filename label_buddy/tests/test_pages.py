@@ -30,35 +30,3 @@ class TestLoginPage(TestCase):
         c = Client()
         logged_in = c.login(username='TestUserName', password='TestUserWrongPassword')
         self.assertEqual(logged_in, False)
-
-
-class TestUserEditPage(TestCase):
-
-    def setUp(self):
-        self.TestUser = User.objects.create_user(username='TestUserName', password='TestUserPassword', email='TestUserName@mail.com')
-        self.TestUser_pk = self.TestUser.pk
-        self.TestUser.save()
-        self.client.login(username='TestUserName', password='TestUserWrongPassword')
-
-    def test_user_edit(self):
-        request = self.client.get(f'/user/TestUserName/edit')
-        print(request)
-        self.assertEqual(request.status_code, 302)
-
-class TestUserList(TestCase):
-
-    def setUp(self):
-        self.TestUser = User.objects.create_user(username='TestUserName', password='TestUserPassword', email='TestUserName@mail.com')
-        self.TestUser_pk = self.TestUser.pk
-        self.TestUser.save()
-        self.client.login(username='TestUserName', password='TestUserWrongPassword')
-
-    # def test_user_list(self):
-    #     request = self.client.get(f'api/v1/users')
-    #     print(request)
-    #     self.assertEqual(request.status_code, 302)
-
-    # def test_user_specific(self):
-    #     request = self.client.get(f'api/v1/users/{str(self.TestUser_pk)}')
-    #     print(request)
-    #     self.assertEqual(request.status_code, 302)
