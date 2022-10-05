@@ -93,6 +93,10 @@ class ProjectTest(TestCase):
         self.TestProject.save()
         self.assertEqual(self.TestProject.title, 'new TestProject')
 
+    def tearDown(self):
+        self.TestPredictionModel.delete()
+        self.TestProject.delete()
+
 
 class TaskTest(TestCase):
 
