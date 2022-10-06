@@ -57,23 +57,99 @@ class TaskFormTests(TestCase):
             "file": "somefile.pdf",
         })
 
-    def test_prediction_model(self):
+    def test_file(self):
         
         self.assertEqual(
             self.form.errors["file"], ['This field is required.', 'Even one of file or url should have a value.']
         )
 
 
-# class ExtendedLogInFormTests(TestCase):
+class ExtendedLogInFormTests(TestCase):
 
-#     def setUp(self):
+    def setUp(self):
 
-#         self.form = ExtendedLogInForm(data={
-#             "file": "somefile.pdf",
-#         })
+        self.form = ExtendedLogInForm(data={
+            "login": "",
+            "password": "",
+        })
 
-#     def test_prediction_model(self):
+    def test_login(self):
         
-#         self.assertEqual(
-#             self.form.errors["file"], ['This field is required.', 'Even one of file or url should have a value.']
-#         )
+        self.assertEqual(
+            self.form.errors["login"], ['This field is required.']
+        )
+
+    def test_password(self):
+        
+        self.assertEqual(
+            self.form.errors["login"], ['This field is required.']
+        )
+
+
+class ExtendedSignUpFormTests(TestCase):
+
+    def setUp(self):
+
+        self.form = ExtendedSignUpForm(data={
+            "name": "",
+            "email": "",
+            "username" : "",
+            "password1" : ""
+        })
+
+    def test_name(self):
+        
+        self.assertEqual(
+            self.form.errors["name"], ['This field is required.']
+        )
+    
+    def test_email(self):
+        
+        self.assertEqual(
+            self.form.errors["email"], ['This field is required.']
+        )
+
+    def test_username(self):
+        
+        self.assertEqual(
+            self.form.errors["username"], ['This field is required.']
+        )
+
+    def test_password1(self):
+        
+        self.assertEqual(
+            self.form.errors["password1"], ['This field is required.']
+        )
+
+
+class ExtendedResetPasswordFormTests(TestCase):
+
+    def setUp(self):
+
+        self.form = ExtendedResetPasswordForm(data={
+            "email": "",
+        })
+
+    def test_email(self):
+        
+        self.assertEqual(
+            self.form.errors["email"], ['This field is required.']
+        )
+
+
+class ExtendedResetPasswordFormTests(TestCase):
+
+    def setUp(self):
+
+        self.form = ExtendedResetPasswordForm(data={
+            "name" : "",
+            "email" : "",
+            "phone_number" : "",
+            "avatar" : "",
+        })
+    
+    def test_email(self):
+        
+        self.assertEqual(
+            self.form.errors["email"], ['This field is required.']
+        )
