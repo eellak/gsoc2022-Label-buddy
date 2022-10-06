@@ -1,4 +1,3 @@
 [run]
- source = .
- omit =
-    */label_buddy/tests/*
+omit =
+    */tests/*

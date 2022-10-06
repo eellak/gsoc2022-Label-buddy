@@ -185,4 +185,29 @@ class AnnotationTest(TestCase):
         self.assertEqual(str(self.TestAnnotation), 'Annotation 1 - project: TestProject')
 
 
+class CommentTest(TestCase):
 
+    def setUp(self):
+        self.TestUser = User.objects.create_user(username='TestUserName', password='TestUserPassword', email='TestUserName@mail.com')
+        self.TestUser.save()
+
+        self.TestLabel = Label.objects.create(name='TestLabel1')
+        self.TestLabel.save()
+
+        self.TestPredictionModel = PredictionModels.objects.create(title='TestPredictionModel')
+        self.TestPredictionModel.save()
+
+        self.TestProject = Project(title="TestProject", prediction_model=self.TestPredictionModel)
+        self.TestProject.save()
+
+        self.task = Task(project=self.TestProject)
+        self.task.save()
+
+        self.TestAnnotation = Annotation(task=self.task, project=self.TestProject, user=self.TestUser)
+        self.TestAnnotation.save()
+
+        self.TestComment = Comment(reviewed_by=self.TestUser, annotation=self.TestAnnotation, comment='TestComment')
+        self.TestComment.save()
+
+    def test_str(self):
+        self.assertEqual(str(self.TestComment), 'Comment from TestUserName')
