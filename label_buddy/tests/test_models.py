@@ -2,7 +2,7 @@ from django.contrib.auth import authenticate, login
 from projects.models import Project, Label, PredictionModels
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
-from tasks.models import Task
+from tasks.models import Task, get_review, Annotation, Comment
 from users.models import User
 from users.views import get_user
 import factory
@@ -129,7 +129,6 @@ class TaskTest(TestCase):
         self.TestLabel = Label.objects.create(name='TestLabel1')
         self.TestLabel.save()
 
-
         self.TestPredictionModel = PredictionModels.objects.create(title='TestPredictionModel')
         self.TestPredictionModel.save()
 
@@ -144,3 +143,46 @@ class TaskTest(TestCase):
 
     def tearDown(self):
         self.TestProject.delete()
+
+    def test_str(self):
+        self.assertEqual(str(self.task), 'Task: 1 - project: TestProject')
+
+
+class AnnotationTest(TestCase):
+
+    def setUp(self):
+        self.TestUser = User.objects.create_user(username='TestUserName', password='TestUserPassword', email='TestUserName@mail.com')
+        self.TestUser.save()
+
+        self.TestLabel = Label.objects.create(name='TestLabel1')
+        self.TestLabel.save()
+
+        self.TestPredictionModel = PredictionModels.objects.create(title='TestPredictionModel')
+        self.TestPredictionModel.save()
+
+        self.TestProject = Project(title="TestProject", prediction_model=self.TestPredictionModel)
+        self.TestProject.save()
+
+        self.task = Task(project=self.TestProject)
+        self.task.save()
+
+        self.TestAnnotation = Annotation(task=self.task, project=self.TestProject, user=self.TestUser)
+        self.TestAnnotation.save()
+
+        self.TestComment = Comment(reviewed_by=self.TestUser, annotation=self.TestAnnotation, comment='TestComment')
+        self.TestComment.save()
+
+    def test_get_review(self):
+        review = get_review(annotation=self.TestAnnotation)
+        self.assertEqual(str(review), 'Comment from TestUserName')
+
+    def test_deleted_get_review(self):
+        self.TestComment.delete()
+        review = get_review(annotation=self.TestAnnotation)
+        self.assertEqual(review, None)
+
+    def test_str(self):
+        self.assertEqual(str(self.TestAnnotation), 'Annotation 1 - project: TestProject')
+
+
+
