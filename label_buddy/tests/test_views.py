@@ -45,6 +45,16 @@ class UserViewsTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
 
+    def test_UserList(self):
+        # Create an instance of a GET request.
+        request = self.factory.post('/users')
+        request.user = self.TestUser
+
+        # Use this syntax for class-based views.
+        response = UserList.as_view()(request)
+
+        self.assertEqual(response.status_code, 403)
+
     def test_edit_profile(self):
 
         kwargs= {'username' : 'TestUserName'}
@@ -69,7 +79,7 @@ class UserViewsTest(TestCase):
 
         self.assertEqual(response.status_code, 302)
 
-    def test_UserDetail(self):
+    def test_UserDetail_get(self):
 
         kwargs={'pk': f'{self.TestUser_pk}'}
 
@@ -79,6 +89,28 @@ class UserViewsTest(TestCase):
         response = UserDetail.as_view()(request, **kwargs)
 
         self.assertEqual(response.status_code, 200)
+
+    def test_UserDetail_put(self):
+
+        kwargs={'pk': f'{self.TestUser_pk}'}
+
+        request = self.factory.put(f'/users/{self.TestUser_pk}')
+        request.user = self.TestUser
+
+        response = UserDetail.as_view()(request, **kwargs)
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_UserDetail_delete(self):
+
+        kwargs={'pk': f'{self.TestUser_pk}'}
+
+        request = self.factory.delete(f'/users/{self.TestUser_pk}')
+        request.user = self.TestUser
+
+        response = UserDetail.as_view()(request, **kwargs)
+
+        self.assertEqual(response.status_code, 403)
 
     def test_get_user(self):
         user = get_user(username="TestUserName") 
