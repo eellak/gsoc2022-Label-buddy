@@ -1,6 +1,9 @@
 from django import forms
 from django.test import TestCase
 
+from projects.models import PredictionModels, Project
+from users.models import User
+
 from projects.forms import ProjectForm, PredictionModelForm
 from tasks.forms import TaskForm
 from users.forms import ExtendedLogInForm, ExtendedSignUpForm, ExtendedResetPasswordForm, UserForm
@@ -22,6 +25,9 @@ class ProjectFormTests(TestCase):
         self.assertEqual(
             self.form.errors["prediction_model"], ['Select a valid choice. That choice is not one of the available choices.']
         )
+
+    def test_form(self):
+        self.assertFalse(self.form.is_valid())
 
 
 class PredictionModelFormTests(TestCase):
@@ -48,6 +54,9 @@ class PredictionModelFormTests(TestCase):
             self.form.errors["current_loss_precentage"], ['Enter a number.']
         )
 
+    def test_form(self):
+        self.assertFalse(self.form.is_valid())
+
 
 class TaskFormTests(TestCase):
 
@@ -62,6 +71,9 @@ class TaskFormTests(TestCase):
         self.assertEqual(
             self.form.errors["file"], ['This field is required.', 'Even one of file or url should have a value.']
         )
+
+    def test_form(self):
+        self.assertFalse(self.form.is_valid())
 
 
 class ExtendedLogInFormTests(TestCase):
@@ -84,6 +96,9 @@ class ExtendedLogInFormTests(TestCase):
         self.assertEqual(
             self.form.errors["login"], ['This field is required.']
         )
+
+    def test_form(self):
+        self.assertFalse(self.form.is_valid())
 
 
 class ExtendedSignUpFormTests(TestCase):
@@ -121,6 +136,9 @@ class ExtendedSignUpFormTests(TestCase):
             self.form.errors["password1"], ['This field is required.']
         )
 
+    def test_form(self):
+        self.assertFalse(self.form.is_valid())
+
 
 class ExtendedResetPasswordFormTests(TestCase):
 
@@ -135,6 +153,9 @@ class ExtendedResetPasswordFormTests(TestCase):
         self.assertEqual(
             self.form.errors["email"], ['This field is required.']
         )
+    
+    def test_form(self):
+        self.assertFalse(self.form.is_valid())
 
 
 class ExtendedResetPasswordFormTests(TestCase):
@@ -153,3 +174,6 @@ class ExtendedResetPasswordFormTests(TestCase):
         self.assertEqual(
             self.form.errors["email"], ['This field is required.']
         )
+
+    def test_form(self):
+        self.assertFalse(self.form.is_valid())

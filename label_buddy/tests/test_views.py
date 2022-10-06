@@ -7,7 +7,9 @@ from users.models import User
 from projects.models import Project, PredictionModels
 from tasks.models import Task
 
-from projects.views import index, project_create_view, project_delete_view, project_edit_view, project_add_prediction_model_view, project_page_view, model_page_view, ProjectList, ProjectDetail, ProjectTasks, api_root, get_dataset_view, project_add_prediction_model_view, annotation_delete_view, task_delete_view, annotate_task_view, list_annotations_for_task_view, review_annotation_view, AnnotationPredictions
+from users.forms import UserForm
+
+from projects.views import index, project_create_view, project_delete_view, project_edit_view, project_add_prediction_model_view, project_page_view, model_page_view, ProjectList, ProjectDetail, ProjectTasks, api_root, get_dataset_view, project_add_prediction_model_view, annotation_delete_view, task_delete_view, annotate_task_view, list_annotations_for_task_view, review_annotation_view, AnnotationPredictions, get_user
 from users.views import UserList, edit_profile, UserDetail
 from tasks.views import TaskList, AnnotationSave, ExportData, ExportDataToContainer
 
@@ -47,12 +49,25 @@ class UserViewsTest(TestCase):
 
         kwargs= {'username' : 'TestUserName'}
 
+        # user_form = UserForm()
+
         request = self.factory.post('/user/TestUserName/edit')
         request.user = self.TestUser
 
         response = edit_profile(request, **kwargs)
 
         self.assertEqual(response.status_code, 200)
+
+    def test_wrong_edit_profile(self):
+
+        kwargs= {'username' : 'TestUserWrongName'}
+
+        request = self.factory.post('/user/TestUserWrongName/edit')
+        request.user = self.TestUser
+
+        response = edit_profile(request, **kwargs)
+
+        self.assertEqual(response.status_code, 302)
 
     def test_UserDetail(self):
 
@@ -64,6 +79,12 @@ class UserViewsTest(TestCase):
         response = UserDetail.as_view()(request, **kwargs)
 
         self.assertEqual(response.status_code, 200)
+
+    def test_get_user(self):
+        user = get_user(username="TestUserName") 
+        self.assertEqual(self.TestUser, user)
+
+
 
 
 class ProjectViewsTest(TestCase):

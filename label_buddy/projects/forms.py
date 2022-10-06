@@ -1,28 +1,6 @@
 from django import forms
 from .models import Project, PredictionModels
 
-
-def get_model_tuple(model):
-
-    tups = ()
-
-    titles = model.objects.values('title')
-    output_labels = model.objects.values('output_labels')
-    model_ids = model.objects.values('id')
-    models = model.objects.all()
-
-    for model_id, title, output_label, model in zip(model_ids, titles, output_labels, models):
-        
-        title_str = str(title).split(':')[1].split('}')[0]
-        output_label_str = str(output_label).split(':')[1].split('}')[0]
-        model_id_str = str(model_id).split(':')[1].split('}')[0]
-
-        new_entry = (model, f"Name: {title_str} | Labels: {output_label_str}")
-        tups = (new_entry, ) + tups
-    
-    return tups
-
-
 class ProjectForm(forms.ModelForm):
 
     """

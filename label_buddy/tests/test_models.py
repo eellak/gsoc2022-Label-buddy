@@ -3,7 +3,8 @@ from projects.models import Project, Label, PredictionModels
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from tasks.models import Task
-from django.contrib.auth.models import User
+from users.models import User
+from users.views import get_user
 import factory
 
 
@@ -19,7 +20,7 @@ import factory
 class SigninTest(TestCase):
 
     def setUp(self):
-        self.TestUser = get_user_model().objects.create_user(username='TestUserName', password='TestUserPassword', email='TestUserName@mail.com')
+        self.TestUser = User.objects.create_user(username='TestUserName', password='TestUserPassword', email='TestUserName@mail.com')
         self.TestUser.save()
 
     def tearDown(self):
@@ -62,11 +63,19 @@ class LabelTest(TestCase):
     def tearDown(self):
         self.TestLabel.delete()
 
+    def test_name(self):
+        self.assertEqual(str(self.TestLabel), 'TestLabel1')
+
+    def test_str(self):
+        self.assertEqual(str(self.TestLabel), 'TestLabel1')
+
 
 class UserTest(TestCase):
 
     def setUp(self):
-        self.TestUser = get_user_model().objects.create_user(username='TestUserName', password='TestUserPassword', email='TestUserName@mail.com')
+        self.TestUser = User.objects.create_user(username='TestUserName', password='TestUserPassword', 
+        email='TestUserName@mail.com')
+        self.TestUser.can_create_projects = False
         self.TestUser.save()
 
     def test_update_user_username(self):
@@ -74,8 +83,18 @@ class UserTest(TestCase):
         self.TestUser.save()
         self.assertEqual(self.TestUser.username, 'new TestUserName')
 
+    def test_str(self):
+        self.assertEqual(str(self.TestUser), 'TestUserName')
+
+    def test_can_create_projects(self):
+        self.TestUser.is_superuser = True
+        self.TestUser.save()
+        self.assertEqual(self.TestUser.can_create_projects, True)
+
     def tearDown(self):
         self.TestUser.delete()
+        user = get_user(username="TestUserName") 
+        self.assertEqual(user, None)
 
 
 class ProjectTest(TestCase):
@@ -96,12 +115,15 @@ class ProjectTest(TestCase):
     def tearDown(self):
         self.TestPredictionModel.delete()
         self.TestProject.delete()
+    
+    def test_str(self):
+        self.assertEqual(str(self.TestProject), 'TestProject')
 
 
 class TaskTest(TestCase):
 
     def setUp(self):
-        self.TestUser = get_user_model().objects.create_user(username='TestUserName', password='TestUserPassword', email='TestUserName@mail.com')
+        self.TestUser = User.objects.create_user(username='TestUserName', password='TestUserPassword', email='TestUserName@mail.com')
         self.TestUser.save()
 
         self.TestLabel = Label.objects.create(name='TestLabel1')
@@ -110,7 +132,6 @@ class TaskTest(TestCase):
 
         self.TestPredictionModel = PredictionModels.objects.create(title='TestPredictionModel')
         self.TestPredictionModel.save()
-
 
         self.TestProject = Project(title="TestProject", prediction_model=self.TestPredictionModel)
         self.TestProject.save()
