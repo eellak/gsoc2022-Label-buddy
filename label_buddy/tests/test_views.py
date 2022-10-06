@@ -1,7 +1,7 @@
 # from django.contrib.auth.models import AnonymousUser, User
 from multiprocessing import managers
-from django.test import RequestFactory, TestCase
-from django.test import TestCase, Client
+from django.test import RequestFactory, TestCase, Client
+from django.urls import reverse
 
 from users.models import User
 from projects.models import Project, PredictionModels
@@ -9,7 +9,7 @@ from tasks.models import Task
 
 from projects.views import index, project_create_view, project_delete_view, project_edit_view, project_add_prediction_model_view, project_page_view, model_page_view, ProjectList, ProjectDetail, ProjectTasks, api_root, get_dataset_view, project_add_prediction_model_view, annotation_delete_view, task_delete_view, annotate_task_view, list_annotations_for_task_view, review_annotation_view, AnnotationPredictions
 from users.views import UserList, edit_profile, UserDetail
-from tasks.views import *
+from tasks.views import TaskList, AnnotationSave, ExportData, ExportDataToContainer
 
 class UserViewsTest(TestCase):
 
@@ -268,11 +268,7 @@ class ProjectViewsTest(TestCase):
         request = self.factory.post(f'/projects/1/tasks/1/annotation/predict')
         request.user = self.TestUser
 
-        print(request)
-
         response = AnnotationPredictions.as_view()(request, **kwargs)
-
-        print(response)
 
         self.assertEqual(response.status_code, 403)
     
@@ -290,3 +286,70 @@ class ProjectViewsTest(TestCase):
     #     print(response)
 
     #     self.assertEqual(response.status_code, 200)
+
+
+class TaskViewsTest(TestCase):
+
+    def setUp(self):
+        # Every test needs access to the request factory.
+        self.factory = RequestFactory()
+
+        self.TestUser = User.objects.create_user(username='TestUserName', password='TestUserPassword', 
+        email='TestUserName@mail.com')
+        self.TestUser_pk = self.TestUser.pk
+        self.TestUser.can_create_projects = True
+        self.TestUser.save()
+
+
+        self.TestPredictionModel = PredictionModels.objects.create(title='TestPredictionModel')
+        self.TestPredictionModel.save()
+
+        self.TestProject = Project(title="TestProject", prediction_model=self.TestPredictionModel, id=1)
+        # self.TestProject.managers.add(self.TestUser)
+        # self.TestProject.reviwers.add(self.TestUser)
+        self.TestProject.annotators.add(self.TestUser)
+        self.TestProject.save()
+
+        # self.task = Task(project=self.TestProject)
+        # self.task.save()
+
+    def test_TaskList(self):
+        request = self.factory.get(reverse('task-list'))
+        request.user = self.TestUser
+
+        response = TaskList.as_view()(request)
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_AnnotationSave(self):
+
+        kwargs={'pk': '1', 'task_pk' : '1'}
+
+        request = self.factory.post('/projects/1/tasks/1/annotation/save')
+        request.user = self.TestUser
+
+        response = AnnotationSave.as_view()(request, **kwargs)
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_ExportData(self):
+
+        kwargs={'pk': '1'}
+
+        request = self.factory.post('/projects/1/tasks/export')
+        request.user = self.TestUser
+
+        response = ExportData.as_view()(request, **kwargs)
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_ExportDataToContainer(self):
+
+        kwargs={'pk': '1'}
+
+        request = self.factory.post('/projects/1/tasks/export_to_container')
+        request.user = self.TestUser
+
+        response = ExportDataToContainer.as_view()(request, **kwargs)
+
+        self.assertEqual(response.status_code, 403)
