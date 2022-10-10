@@ -80,7 +80,7 @@ def result():
 
         print(preds)
 
-        return {'prediction musicnn': preds}
+        return {'prediction PANNs': preds}
 
 
 @app.route('/')

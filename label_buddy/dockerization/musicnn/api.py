@@ -3,6 +3,7 @@ import os
 from flask import Flask, request
 from flask_cors import CORS
 from musicnn.extractor import extractor
+import numpy as np
 import glob
 
 # Creation of the Flask app

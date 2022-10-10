@@ -1,4 +1,5 @@
-flask
-flask_cors
-panns_inference
-glob2
+flask==2.2.2
+flask_cors==3.0.10
+panns_inference==0.0.7
+glob2==0.7
+librosa==0.8.1
