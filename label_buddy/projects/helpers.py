@@ -692,23 +692,23 @@ def get_ml_audio_prediction(audio_file_path, model_title, model_weight_file):
 
     audio_path = '.' + audio_file_path
 
-    if (str(model_title) == 'YOHO_container'):
+    if (str(model_title) == 'YOHO_container') or (str(model_title) == 'musicnn') or (str(model_title) == 'PANNs'):
         #docker
         preds = send_audio_to_container_for_preds('.' + audio_file_path)
 
-    if (str(model_title) == 'musicnn'):
-        taggram, tags, features = extractor(audio_path, input_length=3, model='MTT_musicnn', extract_features=True)
-        max_likelihoods_pes_timestep = np.argmax(taggram, axis=1)
-        tags_with_max_likelihoods = [tags[i] for i in max_likelihoods_pes_timestep]
-        preds = musicnn_prediction_formating(tags_with_max_likelihoods)
+    # if (str(model_title) == 'musicnn'):
+    #     taggram, tags, features = extractor(audio_path, input_length=3, model='MTT_musicnn', extract_features=True)
+    #     max_likelihoods_pes_timestep = np.argmax(taggram, axis=1)
+    #     tags_with_max_likelihoods = [tags[i] for i in max_likelihoods_pes_timestep]
+    #     preds = musicnn_prediction_formating(tags_with_max_likelihoods)
 
-    if (str(model_title) == 'PANNs'):
-        device = 'cpu' # 'cuda' | 'cpu'
-        (audio, _) = librosa.core.load(audio_path, sr=32000, mono=True)
-        audio = audio[None, :]  # (batch_size, segment_samples)
-        sed = SoundEventDetection(checkpoint_path=None, device=device)
-        framewise_output = sed.inference(audio)
-        preds = panns_preds(framewise_output)
+    # if (str(model_title) == 'PANNs'):
+    #     device = 'cpu' # 'cuda' | 'cpu'
+    #     (audio, _) = librosa.core.load(audio_path, sr=32000, mono=True)
+    #     audio = audio[None, :]  # (batch_size, segment_samples)
+    #     sed = SoundEventDetection(checkpoint_path=None, device=device)
+    #     framewise_output = sed.inference(audio)
+    #     preds = panns_preds(framewise_output)
         
     preds_json = json.loads(json.dumps(preds))
 

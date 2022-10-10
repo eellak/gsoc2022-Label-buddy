@@ -5,6 +5,8 @@ RUN apt install -y build-essential
 RUN apt-get -y install python3-dev
 RUN apt-get install -y libsndfile1-dev
 
+RUN mkdir -p ./audios
+
 COPY api.py ./api.py
 COPY requirements.txt ./requirements.txt
 # COPY wsgi.ini ./wsgi.ini
