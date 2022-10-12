@@ -7,10 +7,7 @@ import os
 import json
 from tensorflow import keras
 import torch
-from musicnn.extractor import extractor
 import numpy as np
-import librosa
-from panns_inference import SoundEventDetection, labels as panns_labels
 import requests
 import docker
 
@@ -19,7 +16,6 @@ from django.db.models import Q
 from django.template.defaulttags import register
 
 from .models import Project, Label
-from .ml_utils import mk_preds_vector, define_YOHO
 from users.models import User
 from tasks.models import (
     Task,
@@ -636,79 +632,15 @@ def get_table_id(current_page, objects_per_page, loop_counter):
     return ((current_page - 1) * objects_per_page) + loop_counter
 
 
-def musicnn_prediction_formating(tags_with_max_likelihoods):
-
-    '''
-    Function that returns the prediction by the musicnn model for every 3 deconds,
-    taking as input the tags_with_max_likelihoods.
-    '''
-
-    final_preds = []
-
-    starting_time = 0.0
-    for tag_with_max_likelihoods in tags_with_max_likelihoods:
-        ending_time = starting_time + 3.0
-        final_pred = [starting_time, ending_time, tag_with_max_likelihoods]
-        starting_time = ending_time
-        final_preds.append(final_pred)
-
-    return final_preds
-
-
-def panns_preds(framewise_output, frame_step=300):
-
-  '''
-  Function that returns the prediction by the PANNs model for frame_step/100 seconds,
-  taking as input the framewise_output.
-  '''
-
-  steps = framewise_output.shape[1] // frame_step
-  preds = []
-
-  curr_step = 0
-  for step in range(steps):
-    end_step = curr_step + frame_step
-    classwise_output = np.max(framewise_output[0, curr_step:end_step, :], axis=0) # (classes_num,)
-    idxes = np.argsort(classwise_output)[::-1]
-    label = panns_labels[idxes[0]]
-
-    # remove the commas from labels
-    if "," in label:
-      label = label.replace(",", "")
-    
-    # give prediction in [start, finish, label] format
-    pred = [curr_step/100, end_step/100, label]
-    curr_step = end_step
-    preds.append(pred)
-
-  return preds
-
-
 def get_ml_audio_prediction(audio_file_path, model_title, model_weight_file): 
 
     '''
     Predict audio tags using the machine learning model that has been chosen.
     '''
 
-    audio_path = '.' + audio_file_path
-
     if (str(model_title) == 'YOHO_container') or (str(model_title) == 'musicnn') or (str(model_title) == 'PANNs'):
         #docker
-        preds = send_audio_to_container_for_preds('.' + audio_file_path)
-
-    # if (str(model_title) == 'musicnn'):
-    #     taggram, tags, features = extractor(audio_path, input_length=3, model='MTT_musicnn', extract_features=True)
-    #     max_likelihoods_pes_timestep = np.argmax(taggram, axis=1)
-    #     tags_with_max_likelihoods = [tags[i] for i in max_likelihoods_pes_timestep]
-    #     preds = musicnn_prediction_formating(tags_with_max_likelihoods)
-
-    # if (str(model_title) == 'PANNs'):
-    #     device = 'cpu' # 'cuda' | 'cpu'
-    #     (audio, _) = librosa.core.load(audio_path, sr=32000, mono=True)
-    #     audio = audio[None, :]  # (batch_size, segment_samples)
-    #     sed = SoundEventDetection(checkpoint_path=None, device=device)
-    #     framewise_output = sed.inference(audio)
-    #     preds = panns_preds(framewise_output)
+        preds = send_audio_to_container_for_preds('.' + audio_file_path, str(model_title))
         
     preds_json = json.loads(json.dumps(preds))
 
@@ -746,7 +678,7 @@ def check_if_model_file_is_valid(model_file):
     return False
 
 
-def send_audio_to_container_for_preds(audio_file_path):
+def send_audio_to_container_for_preds(audio_file_path, model_name):
 
     '''
     Function that sends the prediction data and request to the container.
@@ -756,8 +688,11 @@ def send_audio_to_container_for_preds(audio_file_path):
     with open(audio_file_path, 'rb') as file:
         files = {'audio_data': file}
         req = requests.post(url, files=files)
+
+    if model_name=="YOHO_container":
+        model_name="YOHO"
     
-    return req.json()['prediction YOHO']
+    return req.json()[f'prediction {model_name}']
 
 
 def pull_docker_image(dockerhub_repo):

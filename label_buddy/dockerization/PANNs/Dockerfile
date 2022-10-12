@@ -6,6 +6,9 @@ RUN apt-get -y install python3-dev
 RUN apt-get install -y libsndfile1-dev
 
 RUN mkdir -p ./audios
+RUN mkdir -p ./root
+
+ADD panns_data /root/panns_data
 
 COPY api.py ./api.py
 COPY requirements.txt ./requirements.txt
