@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.7-slim
 
 RUN apt-get update
 RUN apt install -y build-essential
@@ -9,9 +9,7 @@ RUN mkdir -p ./audios
 
 COPY api.py ./api.py
 COPY requirements.txt ./requirements.txt
-# COPY wsgi.ini ./wsgi.ini
 
 RUN pip3 install -r requirements.txt
 
 CMD [ "python3", "-W ignore" ,"api.py"]
-# CMD ["uwsgi", "wsgi.ini"]
