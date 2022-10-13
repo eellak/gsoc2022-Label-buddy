@@ -148,8 +148,11 @@ def project_create_view(request):
                 # if there is a docker image on hub pull to initiate
                 if prediction_model_selected.image_repo:
                     model_container = pull_docker_image(prediction_model_selected.image_repo)
+                    if model_container==None:
+                        raise form.ValidationError("Something is wrong with the prediction model image given!")
             else:
                 new_labels = form.cleaned_data['new_labels']
+                
             add_labels_to_project(project, new_labels)
             project.managers.add(user)
             messages.add_message(request, messages.SUCCESS, "Successfully created project %s." % project.title)

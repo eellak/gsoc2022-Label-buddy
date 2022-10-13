@@ -638,10 +638,8 @@ def get_ml_audio_prediction(audio_file_path, model_title, model_weight_file):
     Predict audio tags using the machine learning model that has been chosen.
     '''
 
-    if (str(model_title) == 'YOHO_container') or (str(model_title) == 'musicnn') or (str(model_title) == 'PANNs'):
-        #docker
-        preds = send_audio_to_container_for_preds('.' + audio_file_path, str(model_title))
-        
+    #docker
+    preds = send_audio_to_container_for_preds('.' + audio_file_path, str(model_title))
     preds_json = json.loads(json.dumps(preds))
 
     return preds_json
@@ -688,9 +686,6 @@ def send_audio_to_container_for_preds(audio_file_path, model_name):
     with open(audio_file_path, 'rb') as file:
         files = {'audio_data': file}
         req = requests.post(url, files=files)
-
-    if model_name=="YOHO_container":
-        model_name="YOHO"
     
     return req.json()[f'prediction {model_name}']
 
@@ -701,12 +696,16 @@ def pull_docker_image(dockerhub_repo):
     Function that runs docker, pulls image for the given dockerhub and runs the container.
     '''
 
-    client = docker.from_env()
-    print("Client ready.")
-    image = client.images.pull(dockerhub_repo)
-    print("Image pulled.")
-    # container = client.containers.run(image, detach=True, ports= {f'{CONTAINER_PORT}/tcp': ({CONTAINER_URL}, int(CONTAINER_PORT))})
-    container = client.containers.run(image, detach=True, network_mode='host')
-    print(f'Docker {container} started.')
+    try:
+        client = docker.from_env()
+        print("Client ready.")
+        image = client.images.pull(dockerhub_repo)
+        print("Image pulled.")
+        # container = client.containers.run(image, detach=True, ports= {f'{CONTAINER_PORT}/tcp': ({CONTAINER_URL}, int(CONTAINER_PORT))})
+        container = client.containers.run(image, detach=True, network_mode='host')
+        print(f'Docker {container} started.')
+    except:
+        print("Problem with image given, anaible to run container.")
+        container = None
 
     return container
