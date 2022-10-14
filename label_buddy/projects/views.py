@@ -72,6 +72,8 @@ from .helpers import (
     check_if_model_file_is_valid,
     pull_docker_image,
     check_if_docker_configuration_yaml_is_valid,
+    get_docker_image_from_yaml,
+    get_container_prediction_url_from_yaml
 )
 
 # Global variables
@@ -147,10 +149,16 @@ def project_create_view(request):
                 new_labels = form.cleaned_data['new_labels'] + ", " + prediction_model_selected.output_labels
 
                 # if there is a docker image on hub pull to initiate
-                if prediction_model_selected.image_repo:
-                    model_container = pull_docker_image(prediction_model_selected.image_repo)
-                    if model_container==None:
+                if prediction_model_selected.docker_configuration_yaml_file:
+                    yaml_file_path = os.path.join(settings.MEDIA_ROOT, prediction_model_selected.docker_configuration_yaml_file.name)
+                    model_image = get_docker_image_from_yaml(yaml_file_path)
+                    if model_image:
+                        model_container = pull_docker_image(model_image)
+                        if model_container==None:
+                            raise form.ValidationError("Something is wrong with the prediction model container!")
+                    else:
                         raise form.ValidationError("Something is wrong with the prediction model image given!")
+                   
             else:
                 new_labels = form.cleaned_data['new_labels']
 
@@ -1092,9 +1100,12 @@ class AnnotationPredictions(APIView):
         # If all validations pass, return prediction json
         # if the prediction has not been previoysle made, create and store it
         if (task.annotation_prediction is None):
-            preds_json = get_ml_audio_prediction(task.file.url, project.prediction_model.title, project.prediction_model.weight_file)
-            task.annotation_prediction = preds_json
-            task.save()
+            if project.prediction_model.docker_configuration_yaml_file:
+                yaml_file_path = os.path.join(settings.MEDIA_ROOT, project.prediction_model.docker_configuration_yaml_file.name)
+                container_url = get_container_prediction_url_from_yaml(yaml_file_path)
+                preds_json = get_ml_audio_prediction(task.file.url, project.prediction_model.title, project.prediction_model.weight_file, container_url)
+                task.annotation_prediction = preds_json
+                task.save()
         else:
             # Or get if from the database
             preds_json = task.annotation_prediction
