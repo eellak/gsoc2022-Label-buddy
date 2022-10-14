@@ -633,14 +633,14 @@ def get_table_id(current_page, objects_per_page, loop_counter):
     return ((current_page - 1) * objects_per_page) + loop_counter
 
 
-def get_ml_audio_prediction(audio_file_path, model_title, model_weight_file): 
+def get_ml_audio_prediction(audio_file_path, model_title, model_weight_file, container_url): 
 
     '''
     Predict audio tags using the machine learning model that has been chosen.
     '''
 
     #docker
-    preds = send_audio_to_container_for_preds('.' + audio_file_path, str(model_title))
+    preds = send_audio_to_container_for_preds('.' + audio_file_path, str(model_title), container_url)
     preds_json = json.loads(json.dumps(preds))
 
     return preds_json
@@ -677,6 +677,42 @@ def check_if_model_file_is_valid(model_file):
     return False
 
 
+def get_docker_image_from_yaml(yaml_file):
+    
+        '''
+        Get the docker image from the yaml file.
+        '''
+    
+        with open(yaml_file, 'r') as stream:
+            try:
+                yaml_data = yaml.safe_load(stream)
+                
+                for action in yaml_data['actions']:
+                    if action['type'] == 'RUN_DOCKER_CONTAINER':
+                        return action['docker_image_name'] + ":" + action['docker_image_tag']
+
+            except yaml.YAMLError as exc:
+                print(exc)
+
+
+def get_container_prediction_url_from_yaml(yaml_file):
+    
+        '''
+        Get the prediction url from the yaml file.
+        '''
+    
+        with open(yaml_file, 'r') as stream:
+            try:
+                yaml_data = yaml.safe_load(stream)
+                
+                for action in yaml_data['actions']:
+                    if action['type'] == 'MAKE_PREDICTION':
+                        return action['route']
+
+            except yaml.YAMLError as exc:
+                print(exc)
+
+
 def check_if_docker_configuration_yaml_is_valid(yml_file):
 
     '''
@@ -690,19 +726,18 @@ def check_if_docker_configuration_yaml_is_valid(yml_file):
         except yaml.YAMLError as exc:
             print(exc)    
             return False
-
     
 
-def send_audio_to_container_for_preds(audio_file_path, model_name):
+def send_audio_to_container_for_preds(audio_file_path, model_name, container_url):
 
     '''
     Function that sends the prediction data and request to the container.
     '''
 
-    url = f'http://{CONTAINER_URL}:{CONTAINER_PORT}/predict'
+    # url = f'http://{CONTAINER_URL}:{CONTAINER_PORT}/predict'
     with open(audio_file_path, 'rb') as file:
         files = {'audio_data': file}
-        req = requests.post(url, files=files)
+        req = requests.post(container_url, files=files)
     
     return req.json()[f'prediction {model_name}']
 
