@@ -10,6 +10,12 @@
     <script type="text/javascript"> 
         var project_prediction_model_title = "{{ project.prediction_model.title }}";
         var project_prediction_model = "{{ project.prediction_model }}";
+        var project_prediction_model_yaml_file = "{{ project.prediction_model.docker_configuration_yaml_file }}";
+        var training_url = "{{ training_url }}";
+        var get_training_data_url = "{{ get_training_data_url }}";
+        var get_validation_data_url = "{{ get_validation_data_url }}";
+        var get_approved_data_url = "{{ get_approved_data_url }}";
+        var send_model_weights_url = "{{ send_model_weights_url }}";
         var project_prediction_accuracy = "{{ project.prediction_model.current_accuracy_precentage }}";
         var project_prediction_loss = "{{ project.prediction_model.current_loss_precentage }}";
         var django_csrf_token = "{{ csrf_token }}";

@@ -3,25 +3,25 @@ $(document).ready(
     function()
     {
         const send_approved_annotations_button = document.getElementById('send-approved-annotations-button');
-        if (project_prediction_model_title == 'YOHO_container') send_approved_annotations_button.disabled = false;
+        if (project_prediction_model_title == 'YOHO') send_approved_annotations_button.disabled = false;
         
         const training_button = document.getElementById('training-button');
-        if (project_prediction_model_title == 'YOHO_container') training_button.disabled = false;
+        if (project_prediction_model_title == 'YOHO') training_button.disabled = false;
 
         const send_base_training_dataset_button = document.getElementById('send-base-training-dataset-button');
-        if (project_prediction_model_title == 'YOHO_container') send_base_training_dataset_button.disabled = false;
+        if (project_prediction_model_title == 'YOHO') send_base_training_dataset_button.disabled = false;
 
         const send_base_validation_dataset_button = document.getElementById('send-base-validation-dataset-button');
-        if (project_prediction_model_title == 'YOHO_container') send_base_validation_dataset_button.disabled = false;
+        if (project_prediction_model_title == 'YOHO') send_base_validation_dataset_button.disabled = false;
 
         const dowload_model_weights_button = document.getElementById('dowload-model-weights-button');
-        if (project_prediction_model_title == 'YOHO_container') dowload_model_weights_button.disabled = false;
+        if (project_prediction_model_title == 'YOHO') dowload_model_weights_button.disabled = false;
     }
 );
 
 function send_approved_annotations(){
 
-    let url = "http://127.0.0.1:5000/get_approved_data_annotations?project_id=" + project_id
+    let url = get_approved_data_url + "?project_id=" + project_id
     alert(url)
     let xhr = new XMLHttpRequest();
 
@@ -54,7 +54,7 @@ $(document).ready(
 
 function training(epochs, patience, initial_lr){
 
-    let url = "http://127.0.0.1:5000/train?epochs=" + epochs + '&patience=' + patience + '&lr=' + initial_lr
+    let url = training_url + "?epochs=" + epochs + '&patience=' + patience + '&lr=' + initial_lr
     alert(url)
     let xhr = new XMLHttpRequest();
 
@@ -107,7 +107,7 @@ $(document).ready(
 
 function send_base_training_dataset(){
 
-    let url = "http://127.0.0.1:5000/get_training_data"
+    let url = get_training_data_url
     alert(url)
     let xhr = new XMLHttpRequest();
 
@@ -140,7 +140,7 @@ $(document).ready(
 
 function send_base_validation_dataset(){
 
-    let url = "http://127.0.0.1:5000/get_validation_data"
+    let url = get_validation_data_url
     alert(url)
     let xhr = new XMLHttpRequest();
 

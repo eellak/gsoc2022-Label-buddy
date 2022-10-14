@@ -73,7 +73,8 @@ from .helpers import (
     pull_docker_image,
     check_if_docker_configuration_yaml_is_valid,
     get_docker_image_from_yaml,
-    get_container_prediction_url_from_yaml
+    get_container_prediction_url_from_yaml,
+    get_container_model_page_urls_from_yaml,
 )
 
 # Global variables
@@ -612,9 +613,17 @@ def model_page_view(request, pk):
         messages.add_message(request, messages.ERROR, "You are not involved to requested project.")
         return HttpResponseRedirect("/")
 
+    yaml_file_path = os.path.join(settings.MEDIA_ROOT, project.prediction_model.docker_configuration_yaml_file.name)
+    training_url, get_training_data_url, get_validation_data_url, get_approved_data_url, send_model_weights_url = get_container_model_page_urls_from_yaml(yaml_file_path)
+
     context = {
         "user": user,
         "project": project,
+        "training_url": training_url,
+        "get_training_data_url": get_training_data_url,
+        "get_validation_data_url": get_validation_data_url,
+        "get_approved_data_url": get_approved_data_url,
+        "send_model_weights_url": send_model_weights_url
     }
 
     return render(request, "label_buddy/model_page.html", context)

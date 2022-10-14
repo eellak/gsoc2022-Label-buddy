@@ -713,6 +713,34 @@ def get_container_prediction_url_from_yaml(yaml_file):
                 print(exc)
 
 
+def get_container_model_page_urls_from_yaml(yaml_file):
+    
+        '''
+        Get the model page urls from the yaml file.
+        '''
+    
+        with open(yaml_file, 'r') as stream:
+            try:
+                yaml_data = yaml.safe_load(stream)
+                
+                for action in yaml_data['actions']:
+                    if action['type'] == 'TRAINING':
+                        training_url = action['route']
+                    if action['type'] == 'GET_TRAINING_DATA':
+                        get_training_data_url = action['route']
+                    if action['type'] == 'GET_VALIDATION_DATA':
+                        get_validation_data_url = action['route']
+                    if action['type'] == 'GET_APPROVED_DATA_ANNOTATIONS':
+                        get_approved_data_url = action['route']
+                    if action['type'] == 'SEND_MODEL_WEIGHTS':
+                        send_model_weights_url = action['route']
+
+                return training_url, get_training_data_url, get_validation_data_url, get_approved_data_url, send_model_weights_url
+
+            except yaml.YAMLError as exc:
+                print(exc)
+
+
 def check_if_docker_configuration_yaml_is_valid(yml_file):
 
     '''
