@@ -36,7 +36,7 @@ class PredictionModelsAdmin(admin.ModelAdmin):
     """
 
     search_fields = ["title"]
-    list_display = ["id", "title", "output_labels", "weight_file", "test_dataset", "current_accuracy_precentage"]
+    list_display = ["id", "title", "output_labels", "docker_configuration_yaml_file", "weight_file", "current_accuracy_precentage"]
     ordering = ("id",)
     list_filter = ["output_labels", "current_accuracy_precentage"]
 

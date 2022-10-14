@@ -42,9 +42,8 @@ class PredictionModels(models.Model):
 
     title = models.CharField(max_length=256, unique=True, blank=True, null=True, default='', help_text='Prediction Model title')
     output_labels = models.TextField(blank=True, null=True, default='', help_text='Prediction Model output labels')
-    image_repo = models.TextField(blank=True, null=True, default='', help_text='Prediction Model image repository to pull from.')
+    docker_configuration_yaml_file = models.FileField(upload_to='model_yaml_files', blank=True, help_text='Docker Configuration YAML file.')
     weight_file = models.FileField(upload_to='model_weights', blank=True, help_text='Prediction Model weights file')
-    test_dataset = models.FileField(upload_to='model_datasets', blank=True, help_text='Prediction Model test dataset')
     current_accuracy_precentage = models.FloatField(blank=True, null=True, default=0, help_text='Current accuracy percentage')
     current_loss_precentage = models.FloatField(blank=True, null=True, default=0, help_text='Current loss percentage')
 

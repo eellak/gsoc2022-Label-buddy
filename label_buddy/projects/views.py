@@ -71,6 +71,7 @@ from .helpers import (
     get_ml_audio_prediction,
     check_if_model_file_is_valid,
     pull_docker_image,
+    check_if_docker_configuration_yaml_is_valid,
 )
 
 # Global variables
@@ -152,7 +153,7 @@ def project_create_view(request):
                         raise form.ValidationError("Something is wrong with the prediction model image given!")
             else:
                 new_labels = form.cleaned_data['new_labels']
-                
+
             add_labels_to_project(project, new_labels)
             project.managers.add(user)
             messages.add_message(request, messages.SUCCESS, "Successfully created project %s." % project.title)
@@ -195,6 +196,25 @@ def project_add_prediction_model_view(request):
             # if not prediction_model.weight_file:
             #     messages.add_message(request, messages.ERROR, "Please upload a file.")
             #     return redirect('/projects/add_prediction_model')
+
+            if prediction_model.docker_configuration_yaml_file:
+                # Check if extension is accepted
+                file_extension = str(prediction_model.docker_configuration_yaml_file).split('.')[-1]
+                if file_extension not in ['yaml']:
+                    messages.add_message(request, messages.ERROR, "%s is not an accepted extension." % file_extension)
+                    return redirect('/projects/add_prediction_model')
+
+                # Check if file is valid
+                data = request.FILES['docker_configuration_yaml_file']
+                path = default_storage.save(f"file_testing/{request.FILES['docker_configuration_yaml_file'].name}", ContentFile(data.read()))
+                tmp_docker_configuration_yaml_file = os.path.join(settings.MEDIA_ROOT, path)
+
+                if not check_if_docker_configuration_yaml_is_valid(tmp_docker_configuration_yaml_file):
+                    path = default_storage.delete(tmp_docker_configuration_yaml_file)
+                    messages.add_message(request, messages.ERROR, "File is not valid.")
+                    return redirect('/projects/add_prediction_model')
+                else:
+                    path = default_storage.delete(tmp_docker_configuration_yaml_file)
             
             if prediction_model.weight_file:
                 # Check if extension is accepted
@@ -205,15 +225,15 @@ def project_add_prediction_model_view(request):
 
                 # Check if file is valid
                 data = request.FILES['weight_file']
-                path = default_storage.save(f"model_file_test/{request.FILES['weight_file'].name}", ContentFile(data.read()))
+                path = default_storage.save(f"file_testing/{request.FILES['weight_file'].name}", ContentFile(data.read()))
                 tmp_model_file = os.path.join(settings.MEDIA_ROOT, path)
 
                 if not check_if_model_file_is_valid(tmp_model_file):
-                    path = default_storage.delete(f"model_file_test/{request.FILES['weight_file'].name}")
+                    path = default_storage.delete(tmp_model_file)
                     messages.add_message(request, messages.ERROR, "File is not valid.")
                     return redirect('/projects/add_prediction_model')
                 else:
-                    path = default_storage.delete(f"model_file_test/{request.FILES['weight_file'].name}")
+                    path = default_storage.delete(tmp_model_file)
 
             prediction_model.save()
 

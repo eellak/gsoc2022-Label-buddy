@@ -80,9 +80,8 @@ class PredictionModelForm(forms.ModelForm):
             "rows": 4,
         }
     ))
-    image_repo = forms.CharField(label='Image Repo', required=False, widget=forms.TextInput(attrs={"placeholder": "image_repo"}))
+    docker_configuration_yaml_file = forms.FileField(label='Docker Configuration YAML file', required=False,widget=forms.FileInput(attrs={"id": "docker_configuration_yaml"}))
     weight_file = forms.FileField(label="Model File", required=False, widget=forms.FileInput(attrs={"id": "weight_file"}))
-    test_dataset = forms.FileField(label="Test Dataset", required=False, widget=forms.FileInput(attrs={"id": "test_dataset"}))
     current_accuracy_precentage = forms.FloatField(label="Current Accuracy", required=False, widget=forms.NumberInput(attrs={"id": "current_accuracy_precentage"}))
     current_loss_precentage = forms.FloatField(label="Current Loss", required=False, widget=forms.NumberInput(attrs={"id": "current_loss_precentage"}))
 
@@ -91,9 +90,8 @@ class PredictionModelForm(forms.ModelForm):
         fields = [
             "title",
             "output_labels",
-            "image_repo",
+            "docker_configuration_yaml_file",
             "weight_file",
-            "test_dataset",
             "current_accuracy_precentage",
             "current_loss_precentage"
         ]

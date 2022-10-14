@@ -10,6 +10,7 @@ import torch
 import numpy as np
 import requests
 import docker
+import yaml
 
 from django.core.files import File
 from django.db.models import Q
@@ -675,6 +676,22 @@ def check_if_model_file_is_valid(model_file):
 
     return False
 
+
+def check_if_docker_configuration_yaml_is_valid(yml_file):
+
+    '''
+    Function that checks the validity of a docker configuration YAML file.
+    '''
+    
+    with open(str(yml_file), "r") as stream:
+        try:
+            print(yaml.safe_load(stream))
+            return True
+        except yaml.YAMLError as exc:
+            print(exc)    
+            return False
+
+    
 
 def send_audio_to_container_for_preds(audio_file_path, model_name):
 
