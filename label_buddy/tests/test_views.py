@@ -2,6 +2,7 @@
 from multiprocessing import managers
 from django.test import RequestFactory, TestCase, Client
 from django.urls import reverse
+from django.views.generic import TemplateView
 
 from users.models import User
 from projects.models import Project, PredictionModels
