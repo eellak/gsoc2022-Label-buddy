@@ -1,6 +1,6 @@
 from django.contrib.auth import authenticate, login
 from projects.models import Project, Label, PredictionModels
-from django.test import TestCase, Client
+from django.test import TestCase, Client, TransactionTestCase
 from django.contrib.auth import get_user_model
 from tasks.models import Task, get_review, Annotation, Comment
 from users.models import User
@@ -211,3 +211,108 @@ class CommentTest(TestCase):
 
     def test_str(self):
         self.assertEqual(str(self.TestComment), 'Comment from TestUserName')
+
+
+class TestsThatDependsOnPrimaryKeySequences(TransactionTestCase):
+    reset_sequences = True
+
+    def test_user_pk(self):
+        self.TestUser = User.objects.create_user(username='TestUserName', password='TestUserPassword', email='TestUserName@mail.com')
+        self.TestUser.save()
+        # lion.pk is guaranteed to always be 1
+        self.assertEqual(self.TestUser.pk, 1)
+
+    def test_prediction_model_pk(self):
+        self.TestPredictionModel = PredictionModels.objects.create(title='TestPredictionModel')
+        self.TestPredictionModel.save()
+        # lion.pk is guaranteed to always be 1
+        self.assertEqual(self.TestPredictionModel.pk, 1)
+
+    def test_label_pk(self):
+        self.TestLabel = Label.objects.create(name='TestLabel')
+        self.TestLabel.save()
+        # lion.pk is guaranteed to always be 1
+        self.assertEqual(self.TestLabel.pk, 'TestLabel')
+
+    def test_project_pk(self):
+        self.TestPredictionModel = PredictionModels.objects.create(title='TestPredictionModel')
+        self.TestPredictionModel.save()
+
+        self.TestProject = Project(title="TestProject", prediction_model=self.TestPredictionModel)
+        self.TestProject.save()
+        # lion.pk is guaranteed to always be 1
+        self.assertEqual(self.TestProject.pk, 1)
+
+    def test_task_pk(self):
+        self.TestUser = User.objects.create_user(username='TestUserName', password='TestUserPassword', email='TestUserName@mail.com')
+        self.TestUser.save()
+
+        self.TestLabel = Label.objects.create(name='TestLabel1')
+        self.TestLabel.save()
+
+        self.TestPredictionModel = PredictionModels.objects.create(title='TestPredictionModel')
+        self.TestPredictionModel.save()
+
+        self.TestProject = Project(title="TestProject", prediction_model=self.TestPredictionModel)
+        self.TestProject.save()
+
+        self.TestTask = Task(project=self.TestProject)
+        self.TestTask.save()
+        # lion.pk is guaranteed to always be 1
+        self.assertEqual(self.TestTask.pk, 1)
+
+    
+    def test_label_pk(self):
+        self.TestUser = User.objects.create_user(username='TestUserName', password='TestUserPassword', email='TestUserName@mail.com')
+        self.TestUser.save()
+
+        self.TestLabel = Label.objects.create(name='TestLabel1')
+        self.TestLabel.save()
+
+        self.TestPredictionModel = PredictionModels.objects.create(title='TestPredictionModel')
+        self.TestPredictionModel.save()
+
+        self.TestProject = Project(title="TestProject", prediction_model=self.TestPredictionModel)
+        self.TestProject.save()
+
+        self.task = Task(project=self.TestProject)
+        self.task.save()
+
+        self.TestAnnotation = Annotation(task=self.task, project=self.TestProject, user=self.TestUser)
+        self.TestAnnotation.save()
+
+        # lion.pk is guaranteed to always be 1
+        self.assertEqual(self.TestAnnotation.pk, 1)
+
+    def test_prediction_model_pk(self):
+        self.TestUser = User.objects.create_user(username='TestUserName', password='TestUserPassword', email='TestUserName@mail.com')
+        self.TestUser.save()
+
+        self.TestLabel = Label.objects.create(name='TestLabel1')
+        self.TestLabel.save()
+
+        self.TestPredictionModel = PredictionModels.objects.create(title='TestPredictionModel')
+        self.TestPredictionModel.save()
+
+        self.TestProject = Project(title="TestProject", prediction_model=self.TestPredictionModel)
+        self.TestProject.save()
+
+        self.task = Task(project=self.TestProject)
+        self.task.save()
+
+        self.TestAnnotation = Annotation(task=self.task, project=self.TestProject, user=self.TestUser)
+        self.TestAnnotation.save()
+
+        self.TestComment = Comment(reviewed_by=self.TestUser, annotation=self.TestAnnotation, comment='TestComment')
+        self.TestComment.save()
+
+        # lion.pk is guaranteed to always be 1
+        self.assertEqual(self.TestComment.pk, 1)
+
+
+    
+    
+
+    
+    
+
