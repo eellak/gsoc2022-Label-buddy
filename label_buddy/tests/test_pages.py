@@ -1,7 +1,5 @@
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
-from users.models import User
-from django.test import tag
 
 
 class TestIndexPage(TestCase):

@@ -1,9 +1,4 @@
-from django import forms
 from django.test import TestCase
-
-from projects.models import PredictionModels, Project
-from users.models import User
-
 from projects.forms import ProjectForm, PredictionModelForm
 from tasks.forms import TaskForm
 from users.forms import ExtendedLogInForm, ExtendedSignUpForm, ExtendedResetPasswordForm, UserForm

@@ -1,4 +1,3 @@
-# from django.contrib.auth.models import AnonymousUser, User
 from multiprocessing import managers
 from django.test import RequestFactory, TestCase, Client
 from django.urls import reverse
