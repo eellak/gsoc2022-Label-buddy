@@ -1,20 +1,11 @@
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate
 from projects.models import Project, Label, PredictionModels
-from django.test import TestCase, Client, TransactionTestCase
-from django.contrib.auth import get_user_model
+from django.test import TestCase, TransactionTestCase
 from tasks.models import Task, get_review, Annotation, Comment
 from users.models import User
 from users.views import get_user
-import factory
-
-
-# class UserFactory(DjangoModelFactory):
-
-#     username = factory.Sequence('testuser{}'.format)
-#     email = factory.Sequence('testuser{}@company.com'.format)
-
-#     class Meta:
-#         model = get_user_model()
+from django.core.exceptions import ValidationError 
+from django.dispatch import Signal,receiver
 
 
 class SigninTest(TestCase):
@@ -52,6 +43,9 @@ class PredictionModelTest(TestCase):
 
     def tearDown(self):
         self.TestPredictionModel.delete()
+
+    def strTest(self):
+        self.assertFalse(str(self.TestPredictionModel), 'TestPredictionModel')
 
 
 class LabelTest(TestCase):
@@ -146,6 +140,9 @@ class TaskTest(TestCase):
 
     def test_str(self):
         self.assertEqual(str(self.task), 'Task: 1 - project: TestProject')
+
+    def cleanTest(self):
+        self.assertRaises(ValidationError, self.task.clean())
 
 
 class AnnotationTest(TestCase):
