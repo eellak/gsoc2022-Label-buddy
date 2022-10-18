@@ -1,7 +1,7 @@
 import factory
 from tasks.models import Task, get_review, Annotation, Comment
 from users.models import User
-from projects.models import Project, PredictionModel, Label
+from projects.models import Project, PredictionModels, Label
 from django.contrib.auth.hashers import make_password
 from django.test import TestCase
 
@@ -64,7 +64,7 @@ class PredictionModelFactory(factory.django.DjangoModelFactory):
     project = factory.SubFactory(ProjectFactory)
 
     class Meta:
-        model = PredictionModel
+        model = PredictionModels
 
 
 class LabelFactory(factory.django.DjangoModelFactory):
