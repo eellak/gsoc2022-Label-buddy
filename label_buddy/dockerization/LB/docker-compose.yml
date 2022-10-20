@@ -2,16 +2,69 @@ version: '3.7'
 
 services: # the different images that will be running as containers
   nginx: # service name
-
-# location of the dockerfile that defines the nginx image. The dockerfile will be used to spin up an image during the build stage.
+    # location of the dockerfile that defines the nginx image. The dockerfile will be used to spin up an image during the build stage.
     build: ./nginx 
-
-# map the machine port 1339 to the container port 80. Any traffic from 1339 externally will be passed to port 80 of the NGINX container. You can access this container viea localhost:1339
+    # map the machine port 1339 to the container port 80. Any traffic from 1339 externally will be passed to port 80 of the NGINX container. You can access this container viea localhost:1339
     ports: - 1339:80 
-
-
-# static storages provisioned since django does not handle static files in production
+    # static storages provisioned since django does not handle static files in production
     volumes:  - static_volume:/home/app/microservice/static 
-
-# will only start if web is up and running
+    # will only start if web is up and running
     depends_on: - web 
+
+  db:
+    image: keinos/sqlite3:latest
+    restart: always
+    # Optional: Map the container port to a host port to be able to connect with a local db client 
+    ports:
+      - ${DB_PORT}:${DB_PORT}
+    environment:
+      - POSTGRES_PASSWORD=${sqlite3_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ./db/sqlite3-init/db.sql:/docker-entrypoint-initdb.d/db.sql
+      - sqlite3_data:/var/lib/sqlite3/data/
+
+  app:
+    build:
+      context: ../
+      dockerfile: ./Dockerfile
+      target: dev
+    restart: always
+    depends_on:
+      - db
+    environment:
+      - DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - ../:/home/web/code
+    ports:
+      - 8000:8000
+
+  broker:
+    image: softwaremill/elasticmq-native
+    ports:
+      - 9324:9324
+      - 9325:9325
+    volumes:
+      - ./broker/custom.conf:/opt/elasticmq.conf
+    restart: always
+
+  worker-default:
+    build: *app-image
+    image: worker-default
+    restart: always
+    command: start-celery-worker.sh default
+    depends_on:
+      - db
+      - broker
+    environment: *app-env
+    volumes: *code
+
+volumes:
+  sqlite3_data:
