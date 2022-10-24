@@ -26,3 +26,13 @@ document.addEventListener('DOMContentLoaded', function() {
         NProgress.start();
     });
 });
+
+
+function get_loaded_precentage(audio) {
+    var buffered = audio.buffered; // returns the buffered portion of the audio
+    var loaded; // the loaded portion of the audio
+
+    loaded = buffered.end(0) / audio.duration;  // calculate the loaded percent of the audio
+
+    return loaded;
+}
