@@ -1,10 +1,10 @@
 # Google Summer of Code with GFOSS :sun_with_face: 
 
-**Project:** Automateda Audio-Tagging Using Transfer Learning
+**Project:** Label Buddy 2.0: Automated audio-tagging using transfer learning
 
 **Mentors:** Pantelis Vikatos, Agisilaos Kounelis, Ioannis Sina
 
-**Past Mentors:** Markos Gogoulos
+**Past Mentor:** Markos Gogoulos
 
 **Contributor:** Ioannis Prokopiou
 
@@ -14,7 +14,7 @@
 
 An annotation tool helps people (without the need for specific knowledge) to mark a segment of an audio file (waveform), an image or text etc. in order to specify the segment’s properties. Annotation tools are used in machine learning applications such as Natural Language Processing (NLP) and Object Detection in order to train machines to identify objects or text. While there is a variety of annotation tools, most of them lack the multi-user feature (multiple users annotating a single project simultaneously) whose implementation is planned in this project. The audio annotation process is usually tedious and time consuming therefore, these tools (annotation tools which provide the multi-user feature) are necessary in order to reduce the effort needed as well as to enhance the quality of annotations. Since in most tasks related to audio classification, speech recognition, music detection etc., machine and deep learning models are trained and evaluated with the use audio that has previously been annotated by humans, the implementation of such a tool will lead to higher accuracy of annotated files, as they will have been annotated by more than one human, providing a more reliable dataset. In effect, multi-user annotation will reduce the possibility of human error e.g. an occasional mistaken labelling of a segment might be pointed out by another annotator.
 
-AI-assisted solutions have emerged to speed up annotation workflows and increase productivity. Deep learning models can be used for annotation and can kickstart your development effort by enabling faster annotation of datasets for AI algorithms. Deep learning models are sensitive to the data used to train them, this makes it hard to train the deep learning models on a specific dataset and deploy them on a different dataset. As a solution, transfer learning for sound could help adapt pretrained models into various datasets. Deep learning models used for annotation can be tuned and improved by retraining these pretrained models based on new datasets.
+Deep learning models can be used for annotation and can kickstart your development effort by enabling faster annotation of datasets for AI algorithms. Deep learning models are sensitive to the data used to train them, this makes it hard to train the deep learning models on a specific dataset and deploy them on a different dataset. As a solution, transfer learning for sound could help adapt pretrained models into various datasets. Deep learning models used for annotation can be tuned and improved by retraining these pretrained models based on new datasets.
 
 **Already existing annotation tools:**
 
@@ -26,11 +26,9 @@ Computer Vision Annotation Tool (CVAT): https://github.com/openvinotoolkit/cvat
 
 # Project goals :dart: 
 
-This project is an enhancement to the previous work that has been done previously. Its goal is to make annotation simple and easy while also
-maintaining a well-defined manager-annotator-reviewer framework. The goal of this project is to use Transfer Learning (TL) approaches to make the
-annotation process easier for the user by offering label predictions. This way it will be possible to accomplish more with less data and effort. It is manly devided in two categories of tasks: Machine/Transfer Learning and Django.
+This project is an enhancement to the previous work that has been done previously. Its goal is to make annotation simple and easy while also providing a well-defined manager-annotator-reviewer framework. The goal of this project is to use Transfer Learning (TL) approaches to make the annotation process easier for the user by offering label predictions. The golas can be devides in two categories of tasks: Machine Learning and Django.
 
-**Machine/Transfer Learning:**
+**Machine Learning:**
 
 * Conduct research for the appropriate model architecture
 * Modify the annotation process by integrating the model
@@ -49,7 +47,7 @@ annotation process easier for the user by offering label predictions. This way i
 
 Clone repository and cd to the folder
 ~~~
-git clone https://github.com/eellak/gsoc2021-audio-annotation-tool/
+git clone https://github.com/eellak/gsoc2022-Label-buddy
 cd gsoc2021-audio-annotation-tool
 ~~~
 
@@ -68,7 +66,7 @@ Activate it for **Windows**
 env\Scripts\activate
 ~~~
 
-Install **audiowaveform** following the steps described in https://github.com/bbc/audiowaveform#installation
+Install audiowaveform programm following the given steps: https://github.com/bbc/audiowaveform#installation
 
 Install requirements and cd to label_buddy/
 ~~~
@@ -96,3 +94,7 @@ Visit https://labelbuddy.io/ and sign with the following credentials:
   - **Password**: labelbuddy123
 
 in order to create projects, upload files and annotate them.
+
+Research & Models Documentation: https://docs.google.com/document/d/10Sd1WPcPpctzXY3lO9p6u4ubNzLg7SEUDKWJv09snqU/edit?usp=sharing
+
+DockerHub Repository: https://hub.docker.com/r/ioannisprokopiou/yoho-training

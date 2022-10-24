@@ -1,0 +1,28 @@
+<!-- Description and Instructions modal-->
+<div class="modal fade" id="modelModal" tabindex="-1" role="dialog" aria-labelledby="modelModal" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLongTitle"><b>Model description</b></h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body">
+            Output Labels: {{ project.prediction_model.output_labels }} <br>
+            Image Repository: {{ project.prediction_model.image_repo }} <br>
+            Weight File: {{ project.prediction_model.weight_file }} <br>
+            Output Labels: {{ project.prediction_model.output_labels }} <br>
+            Test Dataset: {{ project.prediction_model.test_dataset }} <br>
+            Current Accuracy: {{ project.prediction_model.current_accuracy_precentage }} <br>
+        </div>
+
+        {% comment %} <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLongTitle"><b>Model instructions</b></h5>
+        </div>
+        <div class="modal-body">
+            {{ project.instructions }}
+        </div> {% endcomment %}
+    </div>
+    </div>
+</div>

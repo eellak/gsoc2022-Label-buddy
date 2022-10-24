@@ -43,6 +43,11 @@
     margin-top: .5%;
 }
 
+#predictions-btn-div {
+    text-align: right;
+    margin-top: .5%;
+}
+
 #right-main-div {
     /* border: solid 2px purple; */
     margin-left: 1%;
@@ -68,8 +73,6 @@
 }
 
 
-
-
 /* classes */
 
 .my-badge {
@@ -88,6 +91,7 @@
     outline: none;
     box-shadow: none;
 }
+
 .annotation-buttons {
     width: 100px;
     height: 100px;
@@ -96,6 +100,17 @@
 .play-pause-buttons:focus {
     outline: none;
     box-shadow: none;
+}
+
+.predictions-buttons:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.predictions-button:disabled {
+    background: #999;
+    color: #555;
+    cursor: not-allowed;
 }
 
 /* Style the button that is used to open and close the collapsible content */

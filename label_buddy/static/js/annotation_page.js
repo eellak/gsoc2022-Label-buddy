@@ -7,6 +7,12 @@ var color_when_selected = '#74deed';
 var initial_opacity = .2;
 var selected_region_opacity = .9;
 var wavesurfer; // eslint-disable-line no-var
+var predictions_enabled = false;
+var wavesurfer_ready = false;
+
+// disable button if there is no prediction model associated with this project
+const predictions_button = document.getElementById('predictions-button');
+if (project_selected_prediction_model != 'None') predictions_button.disabled = false;
 
 function toggleIcon(button){
     $(button).find('i').remove();
@@ -15,6 +21,17 @@ function toggleIcon(button){
     }
     else {
         $(button).html($('<i/>',{class:'fas fa-pause'})).append(' Pause');
+    }
+}
+
+function togglePredictionIcon(button){
+    $(button).find('i').remove();
+    if (predictions_enabled == true) {
+        $(button).html($('<i/>',{class:'fas fa-magic'})).append(' Enable Predictions');
+        predictions_enabled = false;
+    }else {
+        $(button).html($('<i/>',{class:'fas fa-times'})).append(' Disable Predictions');
+        predictions_enabled = true;
     }
 }
 
@@ -168,7 +185,6 @@ function getRegionButton(new_region) {
     new_region_button.id = new_region.id;
     new_region_button.title = "Label: " + new_region.data['label'];
 
-   
     new_region_button.setAttribute( "onClick", "selectRegionButton(this);" );
     new_region_button.setAttribute( "onmouseover", "hoverRegionButtonIn(this);" );
     new_region_button.setAttribute( "onmouseout", "hoverRegionButtonOut(this);" );
@@ -195,9 +211,9 @@ function getRegionButton(new_region) {
     return new_region_button;
 }
 
-function add_region_to_section(region) {
+function add_region_to_section(region, prediction_label=null, prediction_color=null){
     // load region to region section
-    let new_region_button = getRegionButton(region);
+    let new_region_button = getRegionButton(region, prediction_label, prediction_color);
     $('#regions-div').append(new_region_button);
 }
 
@@ -247,6 +263,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // load regions of existing annotation (if exists)
     wavesurfer.on('ready', function() {
+        wavesurfer_ready = true;
         wavesurfer.setPlaybackRate(1);
         wavesurfer.zoom(0); // initial zoom
         wavesurfer.setVolume(1); // initial volume
@@ -338,7 +355,12 @@ document.addEventListener('DOMContentLoaded', function() {
             region.data['label'] = selected_label.value;
             region.data['color'] = selected_label_color;
         } else {
-            add_region_to_section(region);
+            // if label is not selected, the regions have been created by the predictions
+            let pred_region_id = region.id;
+            let label = pred_region_id.split('_')[2];
+            region.data['label'] = label;
+            region.data['color'] = getLabelColorByValue(label);
+            add_region_to_section(region, region.data['label']);
         }
     });
 
@@ -391,6 +413,7 @@ function createResult() {
                 "start": region.start,
                 "end": region.end,
                 "label": region.data['label'],
+                "id": region.id
             }
         }
         result.push(region_dict);
@@ -423,11 +446,13 @@ function loadRegions(result) {
         wavesurfer.addRegion({
             start: region['value']['start'],
             end: region['value']['end'],
+            id: region['value']['id'],
             loop: false,
             color: rgbToRgba(getLabelColorByValue(region['value']['label']), initial_opacity),
             data: {
                 label: region['value']['label'],
-                color: getLabelColorByValue(region['value']['label'])
+                color: getLabelColorByValue(region['value']['label']),
+                id: region['value']['id']
             }
         });
     }
@@ -530,3 +555,66 @@ $('#remove_all_regions').click( function(e) {
     });
     return false; 
 } );
+ 
+document.getElementById('predictions-button').addEventListener("click", function() {
+    // get annotation from the python script
+    if (predictions_enabled == true){
+        AnnotationPredictionsDataRequest();
+    }else{
+        //delete predicted regions
+        //for each region inwavesurfer.regions.list
+        Object.keys(wavesurfer.regions.list).forEach(function (id) {
+
+            let region_id = wavesurfer.regions.list[id].id;
+            let region_button = document.getElementById(region_id);
+
+            if (region_id.includes("prediction")){
+                wavesurfer.regions.list[id].remove();
+                region_button.remove();
+                regions_count -= 1;
+            }       
+        });
+    }
+});
+
+function AnnotationPredictionsDataRequest() {
+    // xmlhttp request for exporting data
+    if (project_selected_prediction_model){
+        const xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                // Typical action to be performed when the document is ready:
+                downloadAnnotationPredictions(JSON.parse(this.responseText));
+            } else if(this.readyState == 4 && (this.status == 400 || this.status == 401)) {
+                showAlert(JSON.parse(this.responseText)['message'], this.status);
+            }
+        };
+        let url = "/api/v1/projects/" + project_id + "/tasks/" + task_id + "/annotation/predict";
+        xhttp.open("POST", url, true);
+        xhttp.setRequestHeader("X-CSRFToken", django_csrf_token);
+        xhttp.setRequestHeader("Content-Type", "application/json");
+        NProgress.start();
+        xhttp.send(JSON.stringify( {
+            "PredictionApproved": $('#PredictionApproved').is(':checked')
+        }));
+    }
+    
+}
+
+function downloadAnnotationPredictions(result) {
+
+    let prediction = result['predictions'];
+    NProgress.done();
+
+    // add region for each prediction
+    let pred_counter = 0; 
+    for(const pred_region of prediction) {
+
+        let starting = pred_region[0]
+        let ending = pred_region[1]
+        let label = pred_region[2]
+
+        wavesurfer.addRegion({start: starting, end: ending, color: rgbToRgba(getLabelColorByValue(label), initial_opacity), id: "prediction_" + String(pred_counter) + "_" + label});
+        pred_counter += 1;
+    }
+}

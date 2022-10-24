@@ -59,6 +59,8 @@ def export_data(project, export_only_approved):
     # Get all annotated tasks of project
     annotated_tasks = Task.objects.filter(project=project, status=Status.labeled)
 
+    audios = []
+
     for task in annotated_tasks:
         task_dict = {
             "id": task.id,
@@ -70,6 +72,8 @@ def export_data(project, export_only_approved):
             "project_created_at": project.created_at.strftime("%Y-%m-%d %H:%M:%S"),
             "project": project.id,
         }
+
+        audios.append(task.file.url)
 
         task_annotations = Annotation.objects.filter(task=task, project=project)
 
@@ -133,4 +137,23 @@ def export_data(project, export_only_approved):
                 task_dict["annotations"].append(annotation_dict)
 
         exported_result.append(task_dict)
-    return exported_result, skipped_annotations
+    return exported_result, skipped_annotations, audios
+
+
+def format_exported_json(exported_json):
+
+    final_annotations = {}
+    for audio_id in exported_json:
+        audio_name = audio_id['data']['audio'].split('audio/')[1].split('.')[0]
+        formated_annotations = []
+        annotation_results = audio_id['annotations'][0]['result']
+        for annotation_result in annotation_results:
+            start = annotation_result['value']['start']
+            end = annotation_result['value']['end']
+            label = annotation_result['value']['label']
+            formated_annotation = [start, end, label]
+            formated_annotations.append(formated_annotation)
+        
+        final_annotations[audio_name] = formated_annotations
+
+    return final_annotations

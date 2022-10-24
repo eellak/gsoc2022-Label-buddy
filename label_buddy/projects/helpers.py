@@ -5,6 +5,12 @@ from rarfile import RarFile
 from itertools import chain
 import os
 import json
+from tensorflow import keras
+import torch
+import numpy as np
+import requests
+import docker
+import yaml
 
 from django.core.files import File
 from django.db.models import Q
@@ -23,7 +29,8 @@ from tasks.models import (
 
 # Global variables
 ACCEPTED_FORMATS = ['.wav', '.mp3', '.mp4', ]
-
+CONTAINER_URL = '127.0.0.1'
+CONTAINER_PORT = '5000'
 
 # Functions
 
@@ -492,6 +499,8 @@ def add_tasks_from_compressed_file(compressed_file, project, file_extension):
     """
     Unzip uploaded file and add contained files to the project.
     """
+    
+    temp_rar_compoments_folder = '/label_buddy/media/rarcomps'
 
     if file_extension == ".zip":
         archive = ZipFile(compressed_file, 'r')
@@ -509,13 +518,9 @@ def add_tasks_from_compressed_file(compressed_file, project, file_extension):
     project_annotators_count = project.annotators.count()
     users_already_assigned_id = []
     for filename in files_names:
-        if file_extension == ".zip":
-            # Zip
-            new_file = archive.open(filename, 'r')
-        else:
-            # Rar
-            pass  # To be fixed
 
+        new_file = archive.open(filename, 'r')
+            
         # For every file that has an extension in [.wav, .mp3, .mp4] create a task
         if filename[-4:] in ACCEPTED_FORMATS:
             # Create task
@@ -547,6 +552,7 @@ def add_tasks_from_compressed_file(compressed_file, project, file_extension):
                     new_task.assigned_to.add(project.annotators.all()[0])
         else:
             skipped_files += 1
+
     return skipped_files
 
 
@@ -627,4 +633,159 @@ def get_table_id(current_page, objects_per_page, loop_counter):
     return ((current_page - 1) * objects_per_page) + loop_counter
 
 
+def get_ml_audio_prediction(audio_file_path, model_title, model_weight_file, container_url): 
 
+    '''
+    Predict audio tags using the machine learning model that has been chosen.
+    '''
+
+    #docker
+    preds = send_audio_to_container_for_preds('.' + audio_file_path, str(model_title), container_url)
+    preds_json = json.loads(json.dumps(preds))
+
+    return preds_json
+
+
+def check_if_model_file_is_valid(model_file):
+
+    '''
+    Function that checks the validity of a model file passing in the Tensorflow and 
+    Keras APIs.
+    '''
+    
+    # Keras/Tensorflow 
+    try:
+        print("Trying to load model on Keras...")
+        keras.models.load_model(str(model_file))
+        print("Model loaded successfully on Keras.")
+        return True
+    except Exception as e:
+        print("Model could not be loaded on Keras. Trying to load model on Tensorflow...")
+        print(e)
+    
+    # Tensorflow
+    try:
+        print("Trying to load model on Tensorflow...")
+        model = torch.load(str(model_file))
+        model.eval()
+        print("Model loaded successfully on Tensorflow.")
+        return True
+    except Exception as e:
+        print("Loading on Tensorflow failed.")
+        print(e)
+
+    return False
+
+
+def get_docker_image_from_yaml(yaml_file):
+    
+        '''
+        Get the docker image from the yaml file.
+        '''
+    
+        with open(yaml_file, 'r') as stream:
+            try:
+                yaml_data = yaml.safe_load(stream)
+                
+                for action in yaml_data['actions']:
+                    if action['type'] == 'RUN_DOCKER_CONTAINER':
+                        return action['docker_image_name'] + ":" + action['docker_image_tag']
+
+            except yaml.YAMLError as exc:
+                print(exc)
+
+
+def get_container_prediction_url_from_yaml(yaml_file):
+    
+        '''
+        Get the prediction url from the yaml file.
+        '''
+    
+        with open(yaml_file, 'r') as stream:
+            try:
+                yaml_data = yaml.safe_load(stream)
+                
+                for action in yaml_data['actions']:
+                    if action['type'] == 'MAKE_PREDICTION':
+                        return action['route']
+
+            except yaml.YAMLError as exc:
+                print(exc)
+
+
+def get_container_model_page_urls_from_yaml(yaml_file):
+    
+        '''
+        Get the model page urls from the yaml file.
+        '''
+    
+        with open(yaml_file, 'r') as stream:
+            try:
+                yaml_data = yaml.safe_load(stream)
+                
+                for action in yaml_data['actions']:
+                    if action['type'] == 'TRAINING':
+                        training_url = action['route']
+                    if action['type'] == 'GET_TRAINING_DATA':
+                        get_training_data_url = action['route']
+                    if action['type'] == 'GET_VALIDATION_DATA':
+                        get_validation_data_url = action['route']
+                    if action['type'] == 'GET_APPROVED_DATA_ANNOTATIONS':
+                        get_approved_data_url = action['route']
+                    if action['type'] == 'SEND_MODEL_WEIGHTS':
+                        send_model_weights_url = action['route']
+
+                return training_url, get_training_data_url, get_validation_data_url, get_approved_data_url, send_model_weights_url
+
+            except yaml.YAMLError as exc:
+                print(exc)
+
+
+def check_if_docker_configuration_yaml_is_valid(yml_file):
+
+    '''
+    Function that checks the validity of a docker configuration YAML file.
+    '''
+    
+    with open(str(yml_file), "r") as stream:
+        try:
+            print(yaml.safe_load(stream))
+            return True
+        except yaml.YAMLError as exc:
+            print(exc)    
+            return False
+    
+
+def send_audio_to_container_for_preds(audio_file_path, model_name, container_url):
+
+    '''
+    Function that sends the prediction data and request to the container.
+    '''
+
+    # url = f'http://{CONTAINER_URL}:{CONTAINER_PORT}/predict'
+    with open(audio_file_path, 'rb') as file:
+        files = {'audio_data': file}
+        req = requests.post(container_url, files=files)
+    
+    return req.json()[f'prediction {model_name}']
+
+
+def pull_docker_image(dockerhub_repo):
+
+    '''
+    Function that runs docker, pulls image for the given dockerhub and runs the container.
+    '''
+
+    try:
+        client = docker.from_env()
+        print("Client ready.")
+        image = client.images.pull(dockerhub_repo)
+        print("Image pulled.")
+        # container = client.containers.run(image, detach=True, ports= {f'{CONTAINER_PORT}/tcp': ({CONTAINER_URL}, int(CONTAINER_PORT))})
+        container = client.containers.run(image, detach=True, network_mode='host')
+        print(f'Docker {container} started.')
+    except:
+        print("Problem with image given, anaible to run container.")
+        container = None
+
+    return container

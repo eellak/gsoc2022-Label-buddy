@@ -1,0 +1,8 @@
+actions:
+  - action: "Run container"
+    type: "RUN_DOCKER_CONTAINER"
+    docker_image_name: "ioannisprokopiou/yoho-training"
+    docker_image_tag: "panns"
+  - action: "Make prediction"
+    type: "MAKE_PREDICTION"
+    route: "http://127.0.0.1:5000/predict"

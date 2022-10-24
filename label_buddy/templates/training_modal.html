@@ -1,0 +1,53 @@
+
+<!-- Export Modal -->
+<div class="modal fade" id="trainingModal" tabindex="-1" role="dialog" aria-labelledby="trainingModal" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLongTitle"><b>Training Settings</b></h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <div style="padding: 2%;">
+                Configure the settings of training process of the model.
+            </div>
+
+            <hr/>
+
+            <div id="training_div_epochs" class="training_div">
+                <div class="epochs">
+                    <label for="epochNumber" class="input-number-label">Number of training epochs: </label>
+                    <span class="input-number">
+                      <input type="number" data-bs-input id="epochNumber" name="epochNumber" value="300" min="1" step="any">
+                    </span>
+                </div>
+            </div>
+
+            <div id="training_div_patience" class="training_div">
+                <div class="patience">
+                    <label for="patienceNumber" class="input-number-label">Number of training patience: </label>
+                    <span class="input-number">
+                      <input type="number" data-bs-input id="patienceNumber" name="patienceNumber" value="15" min="1" step="any">
+                    </span>
+                </div>
+            </div>
+
+            <div id="training_div_initial_lr" class="training_div">
+                <div class="lr">
+                    <label for="lrNumber" class="input-number-label">Training initial learning rate: </label>
+                    <span class="input-number">
+                      <input type="number" data-bs-input id="lrNumber" name="lrNumber" value="0.001" min="0.00001" step="any">
+                    </span>
+                </div>
+            </div>
+
+        </div>
+        <div class="modal-footer">
+            <button id="train-modal-btn" class="btn btn-primary">Train</button>
+        </div>
+    </div>
+    </div>
+</div>

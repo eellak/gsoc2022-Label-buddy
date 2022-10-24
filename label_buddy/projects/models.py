@@ -38,6 +38,23 @@ class Label(models.Model):
         return '%s' % (self.name)
 
 
+class PredictionModels(models.Model):
+
+    title = models.CharField(max_length=256, unique=True, blank=True, null=True, default='', help_text='Prediction Model title')
+    output_labels = models.TextField(blank=True, null=True, default='', help_text='Prediction Model output labels')
+    docker_configuration_yaml_file = models.FileField(upload_to='model_yaml_files', blank=True, help_text='Docker Configuration YAML file.')
+    weight_file = models.FileField(upload_to='model_weights', blank=True, help_text='Prediction Model weights file')
+    current_accuracy_precentage = models.FloatField(blank=True, null=True, default=0, help_text='Current accuracy percentage')
+    current_loss_precentage = models.FloatField(blank=True, null=True, default=0, help_text='Current loss percentage')
+
+    class Meta:
+        ordering = ['id']
+
+    # How to display projects in admin
+    def __str__(self):
+        return f'Title: {self.title} | Labels: {self.output_labels}'
+
+
 class Project(models.Model):
 
     """
@@ -58,6 +75,7 @@ class Project(models.Model):
     reviewers = models.ManyToManyField(User, blank=True, related_name='project_reviewer', help_text='Reviewers who will review annotations')
     annotators = models.ManyToManyField(User, blank=True, related_name='project_annotator', help_text='Annotators for the project')
     managers = models.ManyToManyField(User, blank=True, related_name='project_manager', help_text='Managers for the project')
+    prediction_model = models.ForeignKey(PredictionModels, to_field='title', on_delete=models.CASCADE, default="", null=True, blank=True, help_text='Prediciton Model for the project')
 
     project_type = EnumChoiceField(Project_type, default=Project_type.audio, help_text='Specify the type of the annotation (Audio, image or Video)')
 

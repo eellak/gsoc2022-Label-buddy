@@ -1,14 +1,20 @@
+from pickle import NONE
 import random
+import json
 from json import dumps, loads
+import os
 
 from django import forms
 from django.core.paginator import Paginator
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, FileResponse
 
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -23,10 +29,10 @@ from rest_framework import (
 from users.models import User
 from tasks.forms import TaskForm
 from tasks.serializers import TaskSerializer
-from .models import Project
+from .models import Project, PredictionModels
 from .serializers import ProjectSerializer
 from .permissions import UserCanCreateProject
-from .forms import ProjectForm
+from .forms import ProjectForm, PredictionModelForm
 from tasks.models import (
     Task,
     Annotation,
@@ -35,6 +41,7 @@ from tasks.models import (
     Status,
     Review_status,
 )
+
 from .helpers import (
     get_projects_of_user,
     get_user,
@@ -61,10 +68,18 @@ from .helpers import (
     delete_old_labels,
     users_to_string,
     get_audiowaveform_data,
+    get_ml_audio_prediction,
+    check_if_model_file_is_valid,
+    pull_docker_image,
+    check_if_docker_configuration_yaml_is_valid,
+    get_docker_image_from_yaml,
+    get_container_prediction_url_from_yaml,
+    get_container_model_page_urls_from_yaml,
 )
 
 # Global variables
-ACCEPTED_UPLOADED_EXTENSIONS = ['.wav', '.mp3', '.mp4', '.zip']
+ACCEPTED_UPLOADED_EXTENSIONS = ['.wav', '.mp3', '.mp4', '.zip', '.rar']
+ACCEPTED_MODEL_PREDICTION_UPLOADED_EXTENSIONS = ['h5']
 
 
 def index(request):
@@ -129,7 +144,26 @@ def project_create_view(request):
         if form.is_valid():
             project = form.save()
             # Add labels to project
-            add_labels_to_project(project, form.cleaned_data['new_labels'])
+            prediction_model_selected = form.cleaned_data['prediction_model']
+            # If prediction model is selected, combine the new labels
+            if (prediction_model_selected):
+                new_labels = form.cleaned_data['new_labels'] + ", " + prediction_model_selected.output_labels
+
+                # if there is a docker image on hub pull to initiate
+                if prediction_model_selected.docker_configuration_yaml_file:
+                    yaml_file_path = os.path.join(settings.MEDIA_ROOT, prediction_model_selected.docker_configuration_yaml_file.name)
+                    model_image = get_docker_image_from_yaml(yaml_file_path)
+                    if model_image:
+                        model_container = pull_docker_image(model_image)
+                        if model_container==None:
+                            raise form.ValidationError("Something is wrong with the prediction model container!")
+                    else:
+                        raise form.ValidationError("Something is wrong with the prediction model image given!")
+                   
+            else:
+                new_labels = form.cleaned_data['new_labels']
+
+            add_labels_to_project(project, new_labels)
             project.managers.add(user)
             messages.add_message(request, messages.SUCCESS, "Successfully created project %s." % project.title)
             return HttpResponseRedirect("/")
@@ -145,7 +179,83 @@ def project_create_view(request):
     context = {
         "form": form,
     }
+
     return render(request, "label_buddy/create_project.html", context)
+
+@login_required
+def project_add_prediction_model_view(request):
+
+    """
+    Project create view for adding prediction models. Only user who have can_create_projects = True can access
+    this page.
+    """
+
+    form = PredictionModelForm()
+    user = get_user(request.user.username)
+
+    if not user or (user != request.user) or not user.can_create_projects:
+        return HttpResponseRedirect("/")
+
+    if request.method == "POST":
+        form = PredictionModelForm(request.POST, request.FILES)
+        if form.is_valid():
+            prediction_model = form.save(commit=False)
+            
+            # # Check if filed uploaded
+            # if not prediction_model.weight_file:
+            #     messages.add_message(request, messages.ERROR, "Please upload a file.")
+            #     return redirect('/projects/add_prediction_model')
+
+            if prediction_model.docker_configuration_yaml_file:
+                # Check if extension is accepted
+                file_extension = str(prediction_model.docker_configuration_yaml_file).split('.')[-1]
+                if file_extension not in ['yaml']:
+                    messages.add_message(request, messages.ERROR, "%s is not an accepted extension." % file_extension)
+                    return redirect('/projects/add_prediction_model')
+
+                # Check if file is valid
+                data = request.FILES['docker_configuration_yaml_file']
+                path = default_storage.save(f"file_testing/{request.FILES['docker_configuration_yaml_file'].name}", ContentFile(data.read()))
+                tmp_docker_configuration_yaml_file = os.path.join(settings.MEDIA_ROOT, path)
+
+                if not check_if_docker_configuration_yaml_is_valid(tmp_docker_configuration_yaml_file):
+                    path = default_storage.delete(tmp_docker_configuration_yaml_file)
+                    messages.add_message(request, messages.ERROR, "File is not valid.")
+                    return redirect('/projects/add_prediction_model')
+                else:
+                    path = default_storage.delete(tmp_docker_configuration_yaml_file)
+            
+            if prediction_model.weight_file:
+                # Check if extension is accepted
+                file_extension = str(prediction_model.weight_file).split('.')[-1]
+                if file_extension not in ACCEPTED_MODEL_PREDICTION_UPLOADED_EXTENSIONS:
+                    messages.add_message(request, messages.ERROR, "%s is not an accepted extension." % file_extension)
+                    return redirect('/projects/add_prediction_model')
+
+                # Check if file is valid
+                data = request.FILES['weight_file']
+                path = default_storage.save(f"file_testing/{request.FILES['weight_file'].name}", ContentFile(data.read()))
+                tmp_model_file = os.path.join(settings.MEDIA_ROOT, path)
+
+                if not check_if_model_file_is_valid(tmp_model_file):
+                    path = default_storage.delete(tmp_model_file)
+                    messages.add_message(request, messages.ERROR, "File is not valid.")
+                    return redirect('/projects/add_prediction_model')
+                else:
+                    path = default_storage.delete(tmp_model_file)
+
+            prediction_model.save()
+
+            messages.add_message(request, messages.SUCCESS, "Successfully added model %s." % prediction_model.title)
+            return HttpResponseRedirect("/")
+        else:
+            raise form.ValidationError("Something is wrong")
+
+    context = {
+        "form": form,
+    }
+
+    return render(request, "label_buddy/add_prediction_model.html", context)
 
 
 @login_required
@@ -411,6 +521,7 @@ def project_page_view(request, pk):
 
             # If file uploaded is a zip add new tasks
             if file_extension in [".zip", ".rar"]:
+                
                 # Unzip file and add as many tasks as the files in the zip/rar file
                 skipped_files = add_tasks_from_compressed_file(new_task.file, project, file_extension)
 
@@ -480,6 +591,42 @@ def project_page_view(request, pk):
         "assigned_tasks_count": assigned_tasks_count
     }
     return render(request, "label_buddy/project_page.html", context)
+
+
+@login_required
+def model_page_view(request, pk):
+
+    """
+    Model page view. A page where users can see basic information about the selected model. 
+    Also, the retraining process of the models is done here.
+    """
+
+    user = get_user(request.user.username)
+    project = get_project(pk)
+    if not user or (user != request.user) or not project:
+        if not project:
+            messages.add_message(request, messages.ERROR, "Project does not exist.")
+        return HttpResponseRedirect("/")
+
+    # Check if user involved to project
+    if not is_user_involved(user, project):
+        messages.add_message(request, messages.ERROR, "You are not involved to requested project.")
+        return HttpResponseRedirect("/")
+
+    yaml_file_path = os.path.join(settings.MEDIA_ROOT, project.prediction_model.docker_configuration_yaml_file.name)
+    training_url, get_training_data_url, get_validation_data_url, get_approved_data_url, send_model_weights_url = get_container_model_page_urls_from_yaml(yaml_file_path)
+
+    context = {
+        "user": user,
+        "project": project,
+        "training_url": training_url,
+        "get_training_data_url": get_training_data_url,
+        "get_validation_data_url": get_validation_data_url,
+        "get_approved_data_url": get_approved_data_url,
+        "send_model_weights_url": send_model_weights_url
+    }
+
+    return render(request, "label_buddy/model_page.html", context)
 
 
 @login_required
@@ -914,3 +1061,98 @@ def api_root(request, format=None):
         'users': reverse('user-list', request=request, format=format),
         'tasks': reverse('task-list', request=request, format=format),
     })
+
+class AnnotationPredictions(APIView):
+
+    """
+    API endpoint for annotation prediction data for an audio.
+    Only post is implemented here.
+    """
+
+    def get_project(self, pk):
+        try:
+            return Project.objects.get(pk=pk)
+        except PermissionDenied:
+            return Response({"message": "No permissions"}, status=status.HTTP_401_UNAUTHORIZED)
+        except Project.DoesNotExist:
+            return Response({"message": "Project does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def get_task(self, task_pk):
+        try:
+            return Task.objects.get(pk=task_pk)
+        except PermissionDenied:
+            return Response({"message": "No permissions"}, status=status.HTTP_401_UNAUTHORIZED)
+        except Task.DoesNotExist:
+            return Response({"message": "Task does not exist"}, status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request, pk, task_pk):
+
+        # Checks for user
+        user = get_user(request.user.username)
+        if not user or (user != request.user):
+            return Response({"message": "Something is wrong with the user!"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check if project exists
+        project = self.get_project(pk)
+        if isinstance(project, HttpResponse):
+            return Response(project.data, status=project.status_code)
+
+        # Check if task exists
+        task = self.get_task(task_pk)
+        if isinstance(task, HttpResponse):
+            return Response(task.data, status=task.status_code)
+
+        # Check if user is part of this project
+        if (user not in project.reviewers.all()) and (user not in project.annotators.all()) and (user not in project.managers.all()):
+            return Response({"message": "You are not involved to this project!"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # If all validations pass, return prediction json
+        # if the prediction has not been previoysle made, create and store it
+        if (task.annotation_prediction is None):
+            if project.prediction_model.docker_configuration_yaml_file:
+                yaml_file_path = os.path.join(settings.MEDIA_ROOT, project.prediction_model.docker_configuration_yaml_file.name)
+                container_url = get_container_prediction_url_from_yaml(yaml_file_path)
+                preds_json = get_ml_audio_prediction(task.file.url, project.prediction_model.title, project.prediction_model.weight_file, container_url)
+                task.annotation_prediction = preds_json
+                task.save()
+        else:
+            # Or get if from the database
+            preds_json = task.annotation_prediction
+
+        if request.data['PredictionApproved']:
+            message = "Succesful Prediction."
+        else:
+            message = "Error Occured during Prediction." 
+
+        data = {
+            "predictions": preds_json,
+            "message": message
+        }
+
+        return Response(data, status=status.HTTP_200_OK)
+
+
+class get_dataset_view(APIView):
+
+    """
+    API endpoint to get training data for a model.
+    Only post is implemented here.
+    """
+
+    def post(self, request):
+        
+        if request.method == 'POST':
+
+            if request.POST['data'] == 'training':
+
+                return FileResponse( 
+                    open('./media/datasets/train-zipped/d1.zip', 'rb'),
+                    as_attachment=True, filename='d1.zip'
+                )
+
+            if request.POST['data'] == 'validation':
+
+                return FileResponse( 
+                    open('./media/datasets/val-zipped/BBC-Val.zip', 'rb'),
+                    as_attachment=True, filename='BCC-Val.zip'
+                )

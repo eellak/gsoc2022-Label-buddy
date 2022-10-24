@@ -27,7 +27,8 @@
 		</h2>
 		{% if user.can_create_projects %}
 			<div id="header-div">
-				<a title="Create new project" href="{% url 'create_project'%}" class="btn btn-primary"> <i style="margin-right: 3%;" class="fas fa-plus-circle"></i> Create</a>
+				<a title="Create new project" href="{% url 'create_project'%}" class="btn btn-primary"> <i style="margin-right: 3%;" class="fas fa-plus-circle"></i> Create Project</a>
+				<a title="Add new prediction model" href="{% url 'add_prediction_model'%}" class="btn btn-primary"> <i style="margin-right: 3%;" class="fas fa-brain"></i> Add Prediction Model</a>
 			</div>
 		{% endif %}
 		
@@ -46,6 +47,7 @@
 				</th>
 				<th class="my-table-header">Number of tasks</th>
 				<th class="my-table-header">Annotations</th>
+				<th class="my-table-header">Model</th>
 				<th class="my-table-header">Number of labels</th>
 				<th class="my-table-header">Annotator</th>
 				<th class="my-table-header">Reviewer</th>
@@ -82,6 +84,12 @@
 						
 						<td class="my-table-text" style="text-align: right;">{{ tasks_count|get_item:project.id }}</td>
 						<td class="my-table-text" style="text-align: right;">{{ annotations_count|get_item:project.id }}</td>
+
+						{% if project.prediction_model %}
+							<td class="my-table-text" style="color: green; text-align: right;" title="Selected prediction model">{{ project.prediction_model.title }}</td>
+						{% else %}
+							<td class="my-table-text" style="text-align: right; color: red;" title="NO selected prediction model"> - </td>
+						{% endif %}
 						
 						{% if project.labels.count > 0 %}
 							<td class="my-table-text" style="color: green; text-align: right;" title="You can annotate tasks for this project">{{ project.labels.count }}</td>
@@ -163,7 +171,8 @@
 			<h1 class="headers-page">No projects for you yet</h1>
 			{% if user.can_create_projects %}
 			<div id="header-div">
-				<a title="Create new project" href="{% url 'create_project'%}" class="btn btn-primary"> <i style="margin-right: 3%;" class="fas fa-plus-circle"></i> Create</a>
+				<a title="Create new project" href="{% url 'create_project'%}" class="btn btn-primary"> <i style="margin-right: 3%;" class="fas fa-plus-circle"></i> Create Project</a> 
+				<a title="Add new prediction model" href="{% url 'add_prediction_model'%}" class="btn btn-primary"> <i style="margin-right: 3%;" class="fas fa-brain"></i> Add Prediction Model</a>
 			</div>
 		{% endif %}
 	{% endif %}

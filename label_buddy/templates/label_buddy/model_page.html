@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% load static%}
+
+{% load crispy_forms_tags %}
+
+{% block head_files %}
+    {{ block.super }}
+    <link href="{% static 'css/model_page.css' %}" rel="stylesheet" type="text/css">
+    <script type="text/javascript"> 
+        var project_prediction_model_title = "{{ project.prediction_model.title }}";
+        var project_prediction_model = "{{ project.prediction_model }}";
+        var project_prediction_model_yaml_file = "{{ project.prediction_model.docker_configuration_yaml_file }}";
+        var training_url = "{{ training_url }}";
+        var get_training_data_url = "{{ get_training_data_url }}";
+        var get_validation_data_url = "{{ get_validation_data_url }}";
+        var get_approved_data_url = "{{ get_approved_data_url }}";
+        var send_model_weights_url = "{{ send_model_weights_url }}";
+        var project_prediction_accuracy = "{{ project.prediction_model.current_accuracy_precentage }}";
+        var project_prediction_loss = "{{ project.prediction_model.current_loss_precentage }}";
+        var django_csrf_token = "{{ csrf_token }}";
+        var project_id = "{{ project.id }}";
+    </script>
+    <script src="{% static '/js/model_page.js'%}"></script>
+{% endblock %}
+
+{% block title %} &#9702; {{project.prediction_model.title}} {% endblock %}
+
+{% block breadcrumbs %}
+    <ol style="margin-top: 1%;"  class="breadcrumb bg-light py-0">
+        <li class="breadcrumb-item"><a class="my-link" href="{% url 'index_page' %}"><i class="fas fa-home"></i></a></li>
+        <li class="breadcrumb-item active" aria-current="page">
+            {{ project.title }}
+        </li>
+    </ol>
+{% endblock %}
+
+{% block navbar_buttons %}
+{% endblock %}
+
+{% block content %}
+    {{ block.super }}
+    <div style="display: none;" class="alert alert-success alert-dismissible fade" id="export_success_alert">
+        <i style="margin-right: .5%;" class="fas fa-check-circle"></i>
+        <strong id="success_message"></strong>
+        <button type="button" class="close" onclick="hideAlert(this);" aria-label="Close" value="SUCCESS">
+        <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div style="display: none;" class="alert alert-danger alert-dismissible fade" id="export_fail_alert" role="alert">
+        <i style="margin-right: .5%;" class="fas fa-times-circle"></i>
+        <strong id="fail_message"></strong>
+        <button type="button" class="close" onclick="hideAlert(this);" aria-label="Close" value="DANGER">
+        <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+
+    <h2 class="headers-page">
+        {{ project.prediction_model.title}}
+        <sup>
+            <i style="color: #007bff; cursor: pointer;" data-toggle="modal" data-target="#modelModal" class="far fa-question-circle tooltip-icons fa-xs"></i>
+        </sup>
+    </h2>    
+
+    <table style="width: 51.6397%; margin-left: auto; margin-right: auto; margin-top: 5%; text-align: center;" border="3" cellpadding="10">
+        <tbody>
+            <tr style="height: 20px;">
+                <td style="width: 40%; height: 20px;"> <b>Binary Accuracy</b></td>
+                <td style="width: 40%; height: 20px;"> <b>Loss</b> </td>
+            </tr>
+                <tr style="height: 100px;">
+                <td id="binary_accuracy" style="width: 40%; height: 60px;"> {{ project.prediction_model.current_accuracy_precentage }} </td>
+                <td id="loss" style="width: 40%; height: 60px;"> {{ project.prediction_model.current_loss_precentage }} </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div id="buttons" style="margin-top: 5%; margin-left: 15%;">
+        <div id="send-approved-annotations-btn-div" class="inner">
+            <button title="Send Approved Annotations" id="send-approved-annotations-button" name="send-approved-annotations_script"  class="btn btn-primary send-approved-annotations-buttons" style="width: 250px; margin-right: 10px;" disabled=true> 
+                <i style="margin-right: 1%;" class="fas fa-paper-plane "></i> Send Approved Annotations
+            </button>
+        </div>
+
+        <div id="training-btn-div" class="inner">
+            <button title="Training Process" id="training-button" name="training_script" class="btn btn-primary training-buttons" style="width: 120px; margin-right: 10px;" data-toggle="modal" data-target="#trainingModal" disabled=true>
+                 <i style="margin-right: 1%;" class="fas fa-book-open "></i> Training
+            </button>
+        </div>
+
+        <div id="send-base-training-dataset-btn-div" class="inner">
+            <button title="Send Base Training Dataset" id="send-base-training-dataset-button" name="send-base-training-dataset_script" style="width: 250px; margin-right: 10px;" class="btn btn-primary send-base-training-dataset-buttons" disabled=true> 
+                <i style="margin-right: 1%;" class="fas fa-flag-checkered "></i> Send Base Training Dataset
+            </button>
+        </div>
+
+        <div id="send-base-validation-dataset-btn-div" class="inner">
+            <button title="Send Base Validation Dataset" id="send-base-validation-dataset-button" name="send-base-validation-dataset_script" class="btn btn-primary send-base-validation-dataset-buttons" style="width: 250px; margin-right: 10px;" disabled=true> 
+                <i style="margin-right: 1%;" class="fas fa-flag"></i> Send Base Validation Dataset
+            </button>
+        </div>
+
+        <div id="dowload-model-weights-btn-div" class="inner">
+            <a href="http://127.0.0.1:5000/send_model_weights" download>
+                <button title="Send Base Validation Dataset" id="dowload-model-weights-button" name="dowload-model-weights_script" class="btn btn-primary dowload-model-weights-buttons" style="width: 250px; margin-right: 10px;" disabled=true>
+                     <i style="margin-right: 1%;" class="fa fa-download"></i> Download Model Weights
+                </button>
+            </a>
+        </div>
+    </div>
+
+    {% include "model_modal.html" %}
+    {% include "training_modal.html" %}
+{% endblock %}
+

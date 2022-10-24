@@ -70,6 +70,7 @@ class Task(models.Model):
     url = URLOrRelativeURLField(blank=True, help_text='URL for a file')
 
     audiowaveform = jsonfield.JSONField(blank=True, null=True, default=None, help_text='Audiowaveform data to use for the wavesurver')
+    annotation_prediction = jsonfield.JSONField(blank=True, null=True, default=None, help_text='Annotation prediction for the deep learning model')
     status = EnumChoiceField(Status, default=Status.unlabeled, help_text='If the task is annotated status must be labeled else unlabeled')
     review_status = EnumChoiceField(Review_status, default=Review_status.unreviewed, help_text='Status for reviews')
 
