@@ -155,10 +155,10 @@ def project_create_view(request):
                     model_image = get_docker_image_from_yaml(yaml_file_path)
                     if model_image:
                         model_container = pull_docker_image(model_image)
-                        if model_container==None:
-                            raise form.ValidationError("Something is wrong with the prediction model container!")
+                        if model_container == None:
+                            raise forms.ValidationError("Something is wrong with the prediction model container!")
                     else:
-                        raise form.ValidationError("Something is wrong with the prediction model image given!")
+                        raise forms.ValidationError("Something is wrong with the prediction model image given!")
                    
             else:
                 new_labels = form.cleaned_data['new_labels']
@@ -168,7 +168,7 @@ def project_create_view(request):
             messages.add_message(request, messages.SUCCESS, "Successfully created project %s." % project.title)
             return HttpResponseRedirect("/")
         else:
-            raise form.ValidationError("Something is wrong")
+            raise forms.ValidationError("Something is wrong")
     else:
         # User creating project is manager of the project
         form.fields['managers'].queryset = User.objects.exclude(username=user.username)
@@ -249,7 +249,7 @@ def project_add_prediction_model_view(request):
             messages.add_message(request, messages.SUCCESS, "Successfully added model %s." % prediction_model.title)
             return HttpResponseRedirect("/")
         else:
-            raise form.ValidationError("Something is wrong")
+            raise forms.ValidationError("Something is wrong")
 
     context = {
         "form": form,
